@@ -1,0 +1,3964 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Bomberman - Enhanced Edition</title>
+
+    <!-- Phaser Game Library -->
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+
+    <!-- Google Fonts -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome for Icons -->
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+
+        /* General Body and Font Styles */
+
+        body {
+
+            margin: 0;
+
+            padding: 0;
+
+            background-color: #0c0c14; /* Darker space-like background */
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            height: 100vh;
+
+            font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
+
+            color: #fff;
+
+            image-rendering: pixelated; /* Ensures pixel art isn't blurry */
+
+            overflow: hidden; /* Prevent body scrollbars */
+
+        }
+
+
+
+        /* Base styles for UI containers */
+
+        .ui-container {
+
+            display: none; /* Hidden by default */
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: flex-start; /* Align content to the top */
+
+            padding: 25px 30px;
+
+            border: 4px solid #6a4dff;
+
+            border-radius: 15px;
+
+            box-shadow: 0 0 25px rgba(106, 77, 255, 0.7), inset 0 0 15px rgba(106, 77, 255, 0.4);
+
+            background: linear-gradient(145deg, #1a1a2e, #161625);
+
+            width: 90%;
+
+            max-width: 650px;
+
+            max-height: 90vh; /* Prevent vertical overflow */
+
+            text-align: center;
+
+            overflow-y: auto; /* Add scroll for smaller screens */
+
+            transition: opacity 0.3s ease-in-out;
+
+        }
+
+        
+
+        /* Make the active container visible */
+
+        .ui-container.active {
+
+            display: flex;
+
+        }
+
+
+
+        /* Retro Title Styling */
+
+        h1, h2 {
+
+            font-size: 2.2rem;
+
+            color: #ff00ff;
+
+            text-shadow: 4px 4px 0 #00ffff, 0 0 20px #ff00ff;
+
+            margin-bottom: 25px;
+
+            line-height: 1.2;
+
+            letter-spacing: 2px;
+
+        }
+
+        
+
+        h2 {
+
+            font-size: 1.6rem;
+
+            margin-top: 0;
+
+            margin-bottom: 30px;
+
+        }
+
+        h3 {
+
+            font-size: 1.3rem;
+
+            color: #4CAF50;
+
+            text-shadow: 2px 2px 0 #000;
+
+            margin-bottom: 20px;
+
+            text-transform: uppercase;
+
+            border-bottom: 2px dashed #4CAF50;
+
+            padding-bottom: 10px;
+
+            width: 100%;
+
+        }
+
+
+
+        /* Input field styling */
+
+        .retro-input {
+
+            font-family: 'Press Start 2P', monospace;
+
+            background: #2a2a3e;
+
+            border: 2px solid #6a4dff;
+
+            border-radius: 8px;
+
+            color: #fff;
+
+            padding: 15px;
+
+            margin-bottom: 20px;
+
+            width: 100%;
+
+            box-sizing: border-box;
+
+            font-size: 1rem;
+
+            transition: all 0.2s ease;
+
+        }
+
+        .retro-input::placeholder {
+
+            color: #aaa;
+
+        }
+
+        .retro-input:focus {
+
+            outline: none;
+
+            border-color: #ff00ff;
+
+            box-shadow: 0 0 15px #ff00ff;
+
+        }
+
+
+
+        /* Button styling */
+
+        .retro-btn {
+
+            font-family: 'Press Start 2P', monospace;
+
+            background: linear-gradient(145deg, #4CAF50, #388E3C);
+
+            color: white;
+
+            padding: 15px 25px;
+
+            border: 2px solid #fff;
+
+            border-radius: 10px;
+
+            box-shadow: 4px 4px 0px #000, 0 0 10px rgba(76, 175, 80, 0.5);
+
+            text-transform: uppercase;
+
+            cursor: pointer;
+
+            font-size: 1rem;
+
+            margin: 10px 5px;
+
+            transition: all 0.1s ease-in-out;
+
+            position: relative;
+
+            overflow: hidden;
+
+        }
+
+        .retro-btn:before {
+
+            content: '';
+
+            position: absolute;
+
+            top: -50%;
+
+            left: -50%;
+
+            width: 200%;
+
+            height: 200%;
+
+            background: rgba(255, 255, 255, 0.1);
+
+            transform: rotate(45deg);
+
+            transition: all 0.3s ease;
+
+        }
+
+        .retro-btn:hover:before {
+
+            left: 100%;
+
+        }
+
+        .retro-btn:hover {
+
+            background: linear-gradient(145deg, #45a049, #337a36);
+
+            box-shadow: 2px 2px 0px #000, 0 0 15px rgba(76, 175, 80, 0.8);
+
+            transform: translate(2px, 2px);
+
+        }
+
+        .retro-btn:active {
+
+            box-shadow: 0px 0px 0px #000;
+
+            transform: translate(4px, 4px);
+
+        }
+
+        .retro-btn.remove-btn {
+
+            background: linear-gradient(145deg, #c93030, #a12626);
+
+        }
+
+        .retro-btn.remove-btn:hover {
+
+            background: linear-gradient(145deg, #a12626, #801f1f);
+
+        }
+
+         .retro-btn.secondary-btn {
+
+            background: linear-gradient(145deg, #306ac9, #2755a1);
+
+            font-size: 0.8rem;
+
+            padding: 10px 15px;
+
+        }
+
+        .retro-btn.secondary-btn:hover {
+
+            background: linear-gradient(145deg, #2755a1, #1f437e);
+
+        }
+
+        .retro-btn:disabled {
+
+            background: #555;
+
+            color: #999;
+
+            box-shadow: none;
+
+            transform: none;
+
+            cursor: not-allowed;
+
+        }
+
+        
+
+        /* Link/Toggle styling */
+
+        .toggle-link {
+
+            color: #00ffff;
+
+            text-decoration: underline;
+
+            cursor: pointer;
+
+            margin-top: 20px;
+
+            transition: color 0.2s;
+
+        }
+
+        .toggle-link:hover {
+
+            color: #ff00ff;
+
+        }
+
+        
+
+        /* Error message styling */
+
+        .error-message {
+
+            color: #ff5555;
+
+            background: rgba(255, 85, 85, 0.1);
+
+            border: 1px solid #ff5555;
+
+            border-radius: 5px;
+
+            padding: 10px;
+
+            margin-bottom: 15px;
+
+            min-height: 20px;
+
+            display: none; /* Hidden by default */
+
+        }
+
+
+
+        /* Game containers */
+
+        #bomberman-container, #classic-container {
+
+            display: none; /* Hide game containers initially */
+
+            width: 100%;
+
+            height: 100%;
+
+            justify-content: center;
+
+            align-items: center;
+
+        }
+
+        #bomberman-container.active, #classic-container.active {
+
+            display: flex;
+
+        }
+
+        
+
+        #classic-container iframe {
+
+            width: 100%;
+
+            max-width: 600px;
+
+            height: 450px;
+
+            border: 5px solid #6a4dff;
+
+            border-radius: 10px;
+
+            box-shadow: 0 0 20px #6a4dff;
+
+        }
+
+
+
+        /* Social Menu Specific Styles */
+
+        .friend-code-display {
+
+            background: #10101a;
+
+            border: 2px dashed #00ffff;
+
+            border-radius: 8px;
+
+            padding: 15px;
+
+            margin: 10px 0 25px 0;
+
+            font-size: 1.2rem;
+
+            color: #00ffff;
+
+            letter-spacing: 3px;
+
+            box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.3);
+
+        }
+
+        .social-list {
+
+            list-style: none;
+
+            padding: 0;
+
+            width: 100%;
+
+            margin-bottom: 20px;
+
+        }
+
+        .social-list li {
+
+            background: #2a2a3e;
+
+            border: 2px solid #4a3d8f;
+
+            border-radius: 10px;
+
+            padding: 12px 20px;
+
+            margin-bottom: 10px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            font-size: 1rem;
+
+            transition: transform 0.2s, box-shadow 0.2s;
+
+        }
+
+        .social-list li:hover {
+
+            transform: translateY(-3px);
+
+            box-shadow: 0 5px 15px rgba(106, 77, 255, 0.3);
+
+        }
+
+        .social-list .status-pending {
+
+            color: #f3d44e;
+
+        }
+
+        .social-list .status-declined {
+
+            color: #ff5555;
+
+        }
+
+        .social-list .actions button {
+
+            margin: 0 5px;
+
+            font-size: 0.7rem;
+
+            padding: 8px 12px;
+
+        }
+
+        .tabs {
+
+            display: flex;
+
+            width: 100%;
+
+            margin-bottom: 20px;
+
+            background: #10101a;
+
+            border-radius: 10px;
+
+            overflow: hidden;
+
+            border: 2px solid #4a3d8f;
+
+        }
+
+        .tab-btn {
+
+            flex: 1;
+
+            padding: 12px;
+
+            background: transparent;
+
+            border: none;
+
+            color: #fff;
+
+            cursor: pointer;
+
+            font-family: 'Press Start 2P', monospace;
+
+            font-size: 0.9rem;
+
+            transition: background 0.2s, color 0.2s;
+
+        }
+
+        .tab-btn.active {
+
+            background: #6a4dff;
+
+            color: #fff;
+
+            text-shadow: 0 0 5px #fff;
+
+        }
+
+        .tab-content {
+
+            display: none;
+
+            width: 100%;
+
+        }
+
+        .tab-content.active {
+
+            display: block;
+
+        }
+
+        .pagination {
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            margin-top: 15px;
+
+        }
+
+        .pagination span {
+
+            margin: 0 15px;
+
+            font-size: 1rem;
+
+        }
+
+        
+
+        /* Leaderboard Styles */
+
+        #leaderboard-list {
+
+            width: 100%;
+
+            padding: 0;
+
+            margin: 0;
+
+        }
+
+        #leaderboard-list li {
+
+            display: grid;
+
+            grid-template-columns: 1fr 3fr 1fr;
+
+            gap: 10px;
+
+            padding: 12px;
+
+            border-bottom: 1px solid #444;
+
+            align-items: center;
+
+        }
+
+        #leaderboard-list li .player-name {
+
+            text-align: left;
+
+        }
+
+        #leaderboard-list li .player-score {
+
+            text-align: right;
+
+            font-weight: bold;
+
+            color: #4CAF50;
+
+        }
+
+        
+
+        @keyframes glow {
+
+            0% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ff00ff; }
+
+            50% { text-shadow: 0 0 10px #fff, 0 0 15px #ff00ff, 0 0 20px #ff00ff; }
+
+            100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ff00ff; }
+
+        }
+
+
+
+        .rank-1 .player-rank, .rank-1 .player-name { color: #ffd700; animation: glow 1.5s infinite; }
+
+        .rank-2 .player-rank, .rank-2 .player-name { color: #c0c0c0; animation: glow 1.8s infinite; }
+
+        .rank-3 .player-rank, .rank-3 .player-name { color: #cd7f32; animation: glow 2.1s infinite; }
+
+
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- Login Form -->
+
+    <div id="login-screen" class="ui-container active">
+
+        <h1>BOMBERMAN</h1>
+
+        <h2>Player Login</h2>
+
+        <div id="login-error" class="error-message"></div>
+
+        <input type="email" id="login-email" class="retro-input" placeholder="Enter Email">
+
+        <input type="password" id="login-password" class="retro-input" placeholder="Enter Password">
+
+        <button id="login-btn" class="retro-btn">Login</button>
+
+        <p class="toggle-link" id="show-register">No Account? Register Here</p>
+
+    </div>
+
+
+
+    <!-- Registration Form -->
+
+    <div id="register-screen" class="ui-container">
+
+        <h1>BOMBERMAN</h1>
+
+        <h2>Create Account</h2>
+
+        <div id="register-error" class="error-message"></div>
+
+        <input type="email" id="register-email" class="retro-input" placeholder="Enter Email">
+
+        <input type="password" id="register-password" class="retro-input" placeholder="Enter Password">
+
+        <div id="captcha-question"></div>
+
+        <input type="number" id="captcha-answer" class="retro-input" placeholder="Your Answer">
+
+        <button id="register-btn" class="retro-btn">Register</button>
+
+        <p class="toggle-link" id="show-login">Already have an account? Login</p>
+
+    </div>
+
+
+
+    <!-- OTP Verification Screen -->
+
+    <div id="otp-screen" class="ui-container">
+
+        <h1>VERIFICATION</h1>
+
+        <p id="otp-info">A verification code has been sent to your email. Please enter it below.</p>
+
+        <div id="otp-error" class="error-message"></div>
+
+        <input type="text" id="otp-input" class="retro-input" placeholder="Enter 6-Digit Code" maxlength="6">
+
+        <button id="otp-btn" class="retro-btn">Verify & Register</button>
+
+    </div>
+
+
+
+    <!-- Game Selection Screen -->
+
+    <div id="selection-screen" class="ui-container">
+
+        <h1>SELECT GAME</h1>
+
+        <button id="play-enhanced" class="retro-btn">Play Bomberman: Enhanced Edition</button>
+
+        <button id="play-classic" class="retro-btn">Play Bomberman: Classic Edition</button>
+
+    </div>
+
+
+
+    <!-- Social Screen -->
+
+    <div id="social-screen" class="ui-container">
+
+        <h1><i class="fas fa-users" style="margin-right: 15px;"></i>SOCIAL HUB</h1>
+
+        <h3>Your Friend Code</h3>
+
+        <div id="friend-code" class="friend-code-display"></div>
+
+        <h3>Friend List</h3>
+
+        <ul id="friend-list" class="social-list">
+
+            <!-- Friend items will be injected here -->
+
+        </ul>
+
+        <div id="friend-list-pagination" class="pagination"></div>
+
+        <div style="display: flex; justify-content: center; width: 100%; flex-wrap: wrap;">
+
+            <button id="add-friend-btn" class="retro-btn"><i class="fas fa-user-plus" style="margin-right: 8px;"></i>Add Friend</button>
+
+            <button id="requests-btn" class="retro-btn secondary-btn"><i class="fas fa-bell" style="margin-right: 8px;"></i>Requests</button>
+
+            <button id="back-to-menu-btn" class="retro-btn remove-btn"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i>Back</button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Add Friend Screen -->
+
+    <div id="add-friend-screen" class="ui-container">
+
+        <h1><i class="fas fa-search" style="margin-right: 15px;"></i>ADD FRIEND</h1>
+
+        <div id="add-friend-error" class="error-message"></div>
+
+        <input type="text" id="add-friend-input" class="retro-input" placeholder="Enter Friend Code">
+
+        <button id="send-request-btn" class="retro-btn"><i class="fas fa-paper-plane" style="margin-right: 8px;"></i>Send Request</button>
+
+        <button id="back-to-social-btn1" class="retro-btn remove-btn"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i>Back</button>
+
+    </div>
+
+
+
+    <!-- Requests Screen -->
+
+    <div id="requests-screen" class="ui-container">
+
+        <h1><i class="fas fa-envelope-open-text" style="margin-right: 15px;"></i>REQUESTS</h1>
+
+        <div class="tabs">
+
+            <button class="tab-btn active" data-tab="incoming">Incoming</button>
+
+            <button class="tab-btn" data-tab="pending">Pending</button>
+
+        </div>
+
+        <div id="incoming-tab" class="tab-content active">
+
+            <h3>Incoming Requests</h3>
+
+            <ul id="incoming-requests-list" class="social-list"></ul>
+
+        </div>
+
+        <div id="pending-tab" class="tab-content">
+
+            <h3>Pending Requests</h3>
+
+            <ul id="pending-requests-list" class="social-list"></ul>
+
+        </div>
+
+        <button id="back-to-social-btn2" class="retro-btn remove-btn"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i>Back</button>
+
+    </div>
+
+
+
+    <!-- Leaderboard Screen -->
+
+    <div id="leaderboard-screen" class="ui-container">
+
+        <h1><i class="fas fa-trophy" style="margin-right: 15px;"></i>LEADERBOARD</h1>
+
+        <h2>Deathmatch High Scores</h2>
+
+        <ul id="leaderboard-list" class="social-list">
+
+            <!-- Leaderboard items will be injected here -->
+
+        </ul>
+
+        <button id="back-to-menu-from-leaderboard-btn" class="retro-btn remove-btn"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i>Back</button>
+
+    </div>
+
+
+
+    <!-- Cheat Code Screen -->
+
+    <div id="cheat-screen" class="ui-container">
+
+        <h1><i class="fas fa-magic" style="margin-right: 15px;"></i>ENTER CHEAT</h1>
+
+        <div id="cheat-message" class="error-message"></div>
+
+        <input type="text" id="cheat-input" class="retro-input" placeholder="Enter Cheat Code">
+
+        <button id="submit-cheat-btn" class="retro-btn"><i class="fas fa-check"></i> Submit</button>
+
+        <button id="back-from-cheat-btn" class="retro-btn remove-btn"><i class="fas fa-arrow-left"></i> Back</button>
+
+    </div>
+
+    
+
+    <!-- Container for the Enhanced (Phaser) game -->
+
+    <div id="bomberman-container"></div>
+
+
+
+    <!-- Container for the Classic (iframe) game -->
+
+    <div id="classic-container">
+
+        <iframe src="https://www.retrogames.cc/embed/20411-bomberman-usa.html" width="600" height="450" frameborder="no" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" scrolling="no"></iframe>
+
+    </div>
+
+
+
+    <script type="module">
+
+        // --- BACKEND API COMMUNICATION ---
+
+        const API_BASE_URL = 'http://localhost:3000/api'; // The URL of your running backend server
+
+
+
+        /**
+
+         * Sends a request to the backend to dispatch an OTP to the user's email.
+
+         * @param {string} email - The user's email.
+
+         * @returns {Promise<object>} - The JSON response from the server.
+
+         */
+
+        async function dbSendOTP(email) {
+
+            const response = await fetch(`${API_BASE_URL}/send-otp`, {
+
+                method: 'POST',
+
+                headers: { 'Content-Type': 'application/json' },
+
+                body: JSON.stringify({ email }),
+
+            });
+
+            return response.json();
+
+        }
+
+
+
+        /**
+
+         * Sends the OTP to the backend for verification and completes registration if valid.
+
+         * @param {string} email - The user's email.
+
+         * @param {string} password - The user's password.
+
+         * @param {string} otp - The 6-digit code entered by the user.
+
+         * @returns {Promise<object>} - The JSON response from the server.
+
+         */
+
+        async function dbVerifyOTPAndRegister(email, password, otp) {
+
+            const response = await fetch(`${API_BASE_URL}/verify-otp`, {
+
+                method: 'POST',
+
+                headers: { 'Content-Type': 'application/json' },
+
+                body: JSON.stringify({ email, password, otp }),
+
+            });
+
+            return response.json();
+
+        }
+
+
+
+        /**
+
+         * Logs in a user by calling the backend API.
+
+         * @param {string} email - The user's email.
+
+         * @param {string} password - The user's password.
+
+         * @returns {Promise<object>} - The JSON response from the server.
+
+         */
+
+        async function dbLoginUser(email, password) {
+
+            const response = await fetch(`${API_BASE_URL}/login`, {
+
+                method: 'POST',
+
+                headers: { 'Content-Type': 'application/json' },
+
+                body: JSON.stringify({ email, password }),
+
+            });
+
+            return response.json();
+
+        }
+
+        
+
+        /**
+
+         * Updates user data by calling the backend API.
+
+         * @param {string} email - The user's email to update.
+
+         * @param {object} updatedData - The new data to send.
+
+         * @returns {Promise<object>} - The JSON response from the server.
+
+         */
+
+        async function dbUpdateUser(email, updatedData) {
+
+             const response = await fetch(`${API_BASE_URL}/user/${email}`, {
+
+                 method: 'PUT',
+
+                 headers: { 'Content-Type': 'application/json' },
+
+                 body: JSON.stringify(updatedData),
+
+             });
+
+            return response.json();
+
+        }
+
+
+
+        /**
+
+         * Finds a user by their friend code from the backend.
+
+         * @param {string} friendCode - The friend code to search for.
+
+         * @returns {Promise<object>} - The JSON response from the server.
+
+         */
+
+        async function dbFindUserByFriendCode(friendCode) {
+
+            const response = await fetch(`${API_BASE_URL}/user/by-code/${friendCode}`);
+
+            return response.json();
+
+        }
+
+
+
+        /**
+
+         * Fetches data for a list of friend codes from the backend.
+
+         * @param {string[]} friendCodes - An array of friend codes.
+
+         * @returns {Promise<object[]>} - An array of user objects.
+
+         */
+
+        async function dbGetUsersByFriendCodes(friendCodes) {
+
+            if (friendCodes.length === 0) return [];
+
+            const response = await fetch(`${API_BASE_URL}/users/by-codes`, {
+
+                method: 'POST',
+
+                headers: { 'Content-Type': 'application/json' },
+
+                body: JSON.stringify({ friendCodes }),
+
+            });
+
+            const data = await response.json();
+
+            return data.success ? data.users : [];
+
+        }
+
+
+
+
+
+        // --- UI Management and Authentication Logic ---
+
+        let bombermanGameInstance = null; 
+
+        
+
+        const loginScreen = document.getElementById('login-screen');
+
+        const registerScreen = document.getElementById('register-screen');
+
+        const otpScreen = document.getElementById('otp-screen');
+
+        const selectionScreen = document.getElementById('selection-screen');
+
+        const socialScreen = document.getElementById('social-screen');
+
+        const addFriendScreen = document.getElementById('add-friend-screen');
+
+        const requestsScreen = document.getElementById('requests-screen');
+
+        const leaderboardScreen = document.getElementById('leaderboard-screen');
+
+        const cheatScreen = document.getElementById('cheat-screen');
+
+        const bombermanContainer = document.getElementById('bomberman-container');
+
+        const classicContainer = document.getElementById('classic-container');
+
+        
+
+        let captchaCorrectAnswer = 0;
+
+        let tempUserData = {};
+
+        let currentUser = null; 
+
+        let currentFriendPage = 1;
+
+        const FRIENDS_PER_PAGE = 5;
+
+
+
+        function showScreen(screen) {
+
+            document.querySelectorAll('.ui-container, #bomberman-container, #classic-container').forEach(s => s.classList.remove('active'));
+
+            if (screen) {
+
+                screen.classList.add('active');
+
+            }
+
+        }
+
+        
+
+        function generateCaptcha() {
+
+            const num1 = Math.floor(Math.random() * 10) + 1;
+
+            const num2 = Math.floor(Math.random() * 10) + 1;
+
+            captchaCorrectAnswer = num1 + num2;
+
+            document.getElementById('captcha-question').innerText = `What is ${num1} + ${num2}?`;
+
+        }
+
+        
+
+        function showError(elementId, message) {
+
+            const errorEl = document.getElementById(elementId);
+
+            errorEl.innerText = message;
+
+            errorEl.style.display = 'block';
+
+        }
+
+
+
+        function hideError(elementId) {
+
+            document.getElementById(elementId).style.display = 'none';
+
+        }
+
+
+
+        document.getElementById('show-register').addEventListener('click', () => {
+
+            hideError('login-error');
+
+            generateCaptcha();
+
+            showScreen(registerScreen);
+
+        });
+
+
+
+        document.getElementById('show-login').addEventListener('click', () => {
+
+            hideError('register-error');
+
+            showScreen(loginScreen);
+
+        });
+
+        
+
+        document.getElementById('register-btn').addEventListener('click', async () => {
+
+            const btn = document.getElementById('register-btn');
+
+            btn.disabled = true;
+
+            btn.innerText = "SENDING CODE...";
+
+            hideError('register-error');
+
+            
+
+            const email = document.getElementById('register-email').value;
+
+            const password = document.getElementById('register-password').value;
+
+            const captchaAnswer = parseInt(document.getElementById('captcha-answer').value, 10);
+
+
+
+            if (!email || !password) {
+
+                showError('register-error', 'Email and Password cannot be empty.');
+
+                btn.disabled = false;
+
+                btn.innerText = "Register";
+
+                return;
+
+            }
+
+            if (captchaAnswer !== captchaCorrectAnswer) {
+
+                showError('register-error', 'Incorrect captcha answer!');
+
+                generateCaptcha();
+
+                btn.disabled = false;
+
+                btn.innerText = "Register";
+
+                return;
+
+            }
+
+            
+
+            try {
+
+                // Call backend to send the OTP email
+
+                const result = await dbSendOTP(email);
+
+                if (result.success) {
+
+                    tempUserData = { email, password };
+
+                    showScreen(otpScreen);
+
+                } else {
+
+                    showError('register-error', result.message);
+
+                }
+
+            } catch (error) {
+
+                showError('register-error', 'Could not connect to the server.');
+
+            } finally {
+
+                btn.disabled = false;
+
+                btn.innerText = "Register";
+
+            }
+
+        });
+
+
+
+        document.getElementById('otp-btn').addEventListener('click', async () => {
+
+            const btn = document.getElementById('otp-btn');
+
+            btn.disabled = true;
+
+            btn.innerText = "VERIFYING...";
+
+            hideError('otp-error');
+
+
+
+            const otpInput = document.getElementById('otp-input').value;
+
+            const { email, password } = tempUserData;
+
+
+
+            if (!otpInput || otpInput.length !== 6) {
+
+                showError('otp-error', 'Please enter a valid 6-digit code.');
+
+                btn.disabled = false;
+
+                btn.innerText = "Verify & Register";
+
+                return;
+
+            }
+
+
+
+            try {
+
+                // Call backend to verify OTP and complete registration
+
+                const result = await dbVerifyOTPAndRegister(email, password, otpInput);
+
+                if (result.success) {
+
+                    tempUserData = {};
+
+                    alert('Registration successful! Please log in.');
+
+                    showScreen(loginScreen);
+
+                } else {
+
+                    showError('otp-error', result.message);
+
+                }
+
+            } catch (error) {
+
+                showError('otp-error', 'Could not connect to the server.');
+
+            } finally {
+
+                btn.disabled = false;
+
+                btn.innerText = "Verify & Register";
+
+            }
+
+        });
+
+
+
+        document.getElementById('login-btn').addEventListener('click', async () => {
+
+            const btn = document.getElementById('login-btn');
+
+            btn.disabled = true;
+
+            btn.innerText = "LOGGING IN...";
+
+            hideError('login-error');
+
+
+
+            const email = document.getElementById('login-email').value;
+
+            const password = document.getElementById('login-password').value;
+
+            
+
+            try {
+
+                const result = await dbLoginUser(email, password);
+
+                if (result.success) {
+
+                    currentUser = result.user;
+
+                    currentUser.email = currentUser.email || currentUser._id;
+
+                    // Initialize game progress data if it doesn't exist on the user object
+
+                    if (!currentUser.standardModeStats) {
+
+                        currentUser.standardModeStats = { highestScore: 0, unlockedLevel: 0 };
+
+                    }
+
+                    if (currentUser.savedGame === undefined) {
+
+                        currentUser.savedGame = null;
+
+                    }
+
+                    showScreen(selectionScreen);
+
+                } else {
+
+                    showError('login-error', result.message);
+
+                }
+
+            } catch (error) {
+
+                showError('login-error', 'Could not connect to the server. Is it running?');
+
+            }
+
+            
+
+            btn.disabled = false;
+
+            btn.innerText = "Login";
+
+        });
+
+
+
+        document.getElementById('play-enhanced').addEventListener('click', () => {
+
+            showScreen(null);
+
+            bombermanContainer.classList.add('active');
+
+            if (!bombermanGameInstance) {
+
+                startEnhancedGame();
+
+            } else {
+
+                bombermanGameInstance.scene.resume('MainMenu');
+
+            }
+
+        });
+
+
+
+        document.getElementById('play-classic').addEventListener('click', () => {
+
+            showScreen(null);
+
+            classicContainer.classList.add('active');
+
+        });
+
+
+
+        async function openSocialMenu() {
+
+            bombermanContainer.classList.remove('active');
+
+            if (bombermanGameInstance) {
+
+                bombermanGameInstance.scene.pause('MainMenu');
+
+            }
+
+            document.getElementById('friend-code').innerText = currentUser.friendCode;
+
+            currentFriendPage = 1;
+
+            await populateFriendList();
+
+            showScreen(socialScreen);
+
+        }
+
+
+
+        async function populateFriendList() {
+
+            const list = document.getElementById('friend-list');
+
+            const paginationContainer = document.getElementById('friend-list-pagination');
+
+            list.innerHTML = '<li>Loading friends...</li>';
+
+            paginationContainer.innerHTML = '';
+
+
+
+            const friendsData = await dbGetUsersByFriendCodes(currentUser.friends);
+
+            list.innerHTML = '';
+
+
+
+            if (friendsData.length === 0) {
+
+                list.innerHTML = '<li>No friends yet. Add some!</li>';
+
+                return;
+
+            }
+
+
+
+            const totalPages = Math.ceil(friendsData.length / FRIENDS_PER_PAGE);
+
+            const startIndex = (currentFriendPage - 1) * FRIENDS_PER_PAGE;
+
+            const endIndex = startIndex + FRIENDS_PER_PAGE;
+
+            const paginatedFriends = friendsData.slice(startIndex, endIndex);
+
+
+
+            paginatedFriends.forEach(friend => {
+
+                const li = document.createElement('li');
+
+                li.innerHTML = `<span><i class="fas fa-user-circle" style="margin-right: 10px; color: #00ffff;"></i>${(friend.email || friend._id).split('@')[0]}</span> <button class="retro-btn remove-btn secondary-btn" data-code="${friend.friendCode}"><i class="fas fa-user-minus"></i></button>`;
+
+                list.appendChild(li);
+
+            });
+
+            
+
+            list.onclick = async (event) => {
+
+                const button = event.target.closest('.remove-btn');
+
+                if(button) {
+
+                    const friendCodeToRemove = button.dataset.code;
+
+                    await removeFriend(friendCodeToRemove);
+
+                      if (paginatedFriends.length === 1 && currentFriendPage > 1) {
+
+                          currentFriendPage--;
+
+                      }
+
+                    await populateFriendList();
+
+                }
+
+            };
+
+
+
+            if (totalPages > 1) {
+
+                 const prevBtn = document.createElement('button');
+
+                prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+
+                prevBtn.className = 'retro-btn secondary-btn';
+
+                prevBtn.disabled = currentFriendPage === 1;
+
+                prevBtn.addEventListener('click', async () => {
+
+                    if (currentFriendPage > 1) {
+
+                        currentFriendPage--;
+
+                        await populateFriendList();
+
+                    }
+
+                });
+
+
+
+                const pageInfo = document.createElement('span');
+
+                pageInfo.innerText = `Page ${currentFriendPage} of ${totalPages}`;
+
+
+
+                const nextBtn = document.createElement('button');
+
+                nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+
+                nextBtn.className = 'retro-btn secondary-btn';
+
+                nextBtn.disabled = currentFriendPage === totalPages;
+
+                nextBtn.addEventListener('click', async () => {
+
+                    if (currentFriendPage < totalPages) {
+
+                        currentFriendPage++;
+
+                        await populateFriendList();
+
+                    }
+
+                });
+
+
+
+                paginationContainer.appendChild(prevBtn);
+
+                paginationContainer.appendChild(pageInfo);
+
+                paginationContainer.appendChild(nextBtn);
+
+            }
+
+        }
+
+        
+
+        async function removeFriend(friendCodeToRemove) {
+
+            const friendResult = await dbFindUserByFriendCode(friendCodeToRemove);
+
+            if (!friendResult.success) return;
+
+            const friendData = friendResult.user;
+
+
+
+            currentUser.friends = currentUser.friends.filter(fc => fc !== friendCodeToRemove);
+
+            await dbUpdateUser(currentUser.email, { friends: currentUser.friends });
+
+
+
+            const friendEmail = friendData.email || friendData._id;
+
+            const updatedFriendFriends = friendData.friends.filter(fc => fc !== currentUser.friendCode);
+
+            await dbUpdateUser(friendEmail, { friends: updatedFriendFriends });
+
+        }
+
+
+
+        document.getElementById('add-friend-btn').addEventListener('click', () => showScreen(addFriendScreen));
+
+        document.getElementById('requests-btn').addEventListener('click', async () => {
+
+            await populateRequestsLists();
+
+            showScreen(requestsScreen);
+
+        });
+
+        document.getElementById('back-to-menu-btn').addEventListener('click', () => {
+
+            showScreen(null);
+
+            bombermanContainer.classList.add('active');
+
+            if(bombermanGameInstance) {
+
+                 bombermanGameInstance.scene.resume('MainMenu');
+
+            }
+
+        });
+
+        
+
+        document.getElementById('send-request-btn').addEventListener('click', async () => {
+
+            const btn = document.getElementById('send-request-btn');
+
+            btn.disabled = true;
+
+            hideError('add-friend-error');
+
+
+
+            const friendCode = document.getElementById('add-friend-input').value;
+
+            const result = await dbFindUserByFriendCode(friendCode);
+
+
+
+            if (!result.success) {
+
+                showError('add-friend-error', 'User not found.');
+
+            } else if ((result.user.email || result.user._id) === currentUser.email) {
+
+                showError('add-friend-error', "You can't add yourself.");
+
+            } else if (currentUser.friends.includes(friendCode)) {
+
+                showError('add-friend-error', 'You are already friends.');
+
+            } else if (currentUser.pendingRequests.includes(friendCode)) {
+
+                showError('add-friend-error', 'Request already sent.');
+
+            } else {
+
+                const targetUser = result.user;
+
+                const targetEmail = targetUser.email || targetUser._id;
+
+                
+
+                targetUser.incomingRequests.push(currentUser.friendCode);
+
+                await dbUpdateUser(targetEmail, { incomingRequests: targetUser.incomingRequests });
+
+
+
+                currentUser.pendingRequests.push(friendCode);
+
+                await dbUpdateUser(currentUser.email, { pendingRequests: currentUser.pendingRequests });
+
+                
+
+                document.getElementById('add-friend-input').value = '';
+
+                await openSocialMenu();
+
+            }
+
+            btn.disabled = false;
+
+        });
+
+        document.getElementById('back-to-social-btn1').addEventListener('click', () => showScreen(socialScreen));
+
+
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+
+            btn.addEventListener('click', () => {
+
+                document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+
+                btn.classList.add('active');
+
+                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+
+            });
+
+        });
+
+
+
+        async function populateRequestsLists() {
+
+            const incomingList = document.getElementById('incoming-requests-list');
+
+            const pendingList = document.getElementById('pending-requests-list');
+
+            incomingList.innerHTML = '<li>Loading...</li>';
+
+            pendingList.innerHTML = '<li>Loading...</li>';
+
+
+
+            const incomingUsers = await dbGetUsersByFriendCodes(currentUser.incomingRequests);
+
+            incomingList.innerHTML = incomingUsers.length === 0 ? '<li>No new requests.</li>' : '';
+
+            incomingUsers.forEach(sender => {
+
+                const li = document.createElement('li');
+
+                li.innerHTML = `<span><i class="fas fa-user-plus" style="margin-right: 10px;"></i>${(sender.email || sender._id).split('@')[0]}</span> <div class="actions"><button class="retro-btn secondary-btn accept" data-code="${sender.friendCode}"><i class="fas fa-check"></i></button><button class="retro-btn remove-btn secondary-btn decline" data-code="${sender.friendCode}"><i class="fas fa-times"></i></button></div>`;
+
+                incomingList.appendChild(li);
+
+            });
+
+
+
+            const pendingUsers = await dbGetUsersByFriendCodes(currentUser.pendingRequests);
+
+            pendingList.innerHTML = pendingUsers.length === 0 ? '<li>No pending requests.</li>' : '';
+
+            pendingUsers.forEach(receiver => {
+
+                const li = document.createElement('li');
+
+                li.innerHTML = `<span><i class="fas fa-hourglass-half" style="margin-right: 10px;"></i>${(receiver.email || receiver._id).split('@')[0]}</span> <div class="actions"><span class="status-pending">Pending</span><button class="retro-btn remove-btn secondary-btn revoke" data-code="${receiver.friendCode}"><i class="fas fa-undo"></i></button></div>`;
+
+                pendingList.appendChild(li);
+
+            });
+
+        }
+
+        
+
+        requestsScreen.addEventListener('click', async (event) => {
+
+            const target = event.target.closest('button');
+
+            if (!target) return;
+
+
+
+            const friendCode = target.dataset.code;
+
+            if (!friendCode) return;
+
+
+
+            if (target.classList.contains('accept')) await handleRequest(friendCode, true);
+
+            if (target.classList.contains('decline')) await handleRequest(friendCode, false);
+
+            if (target.classList.contains('revoke')) await revokeRequest(friendCode);
+
+        });
+
+
+
+
+
+        async function handleRequest(senderCode, accepted) {
+
+            const senderResult = await dbFindUserByFriendCode(senderCode);
+
+            if (!senderResult.success) return;
+
+            const senderData = senderResult.user;
+
+            const senderEmail = senderData.email || senderData._id;
+
+
+
+            currentUser.incomingRequests = currentUser.incomingRequests.filter(c => c !== senderCode);
+
+            if (accepted) currentUser.friends.push(senderCode);
+
+            await dbUpdateUser(currentUser.email, { incomingRequests: currentUser.incomingRequests, friends: currentUser.friends });
+
+
+
+            const updatedSenderPending = senderData.pendingRequests.filter(c => c !== currentUser.friendCode);
+
+            if (accepted) senderData.friends.push(currentUser.friendCode);
+
+            await dbUpdateUser(senderEmail, { pendingRequests: updatedSenderPending, friends: senderData.friends });
+
+
+
+            await populateRequestsLists();
+
+        }
+
+        
+
+        async function revokeRequest(receiverCode) {
+
+            const receiverResult = await dbFindUserByFriendCode(receiverCode);
+
+            if (!receiverResult.success) return;
+
+            const receiverData = receiverResult.user;
+
+            const receiverEmail = receiverData.email || receiverData._id;
+
+
+
+            currentUser.pendingRequests = currentUser.pendingRequests.filter(c => c !== receiverCode);
+
+            await dbUpdateUser(currentUser.email, { pendingRequests: currentUser.pendingRequests });
+
+
+
+            const updatedReceiverIncoming = receiverData.incomingRequests.filter(c => c !== currentUser.friendCode);
+
+            await dbUpdateUser(receiverEmail, { incomingRequests: updatedReceiverIncoming });
+
+
+
+            await populateRequestsLists();
+
+        }
+
+
+
+        document.getElementById('back-to-social-btn2').addEventListener('click', async () => {
+
+            await openSocialMenu();
+
+        });
+
+
+
+        async function openLeaderboardMenu() {
+
+            bombermanContainer.classList.remove('active');
+
+            if (bombermanGameInstance) {
+
+                bombermanGameInstance.scene.pause('MainMenu');
+
+            }
+
+            await populateLeaderboard();
+
+            showScreen(leaderboardScreen);
+
+        }
+
+
+
+        async function populateLeaderboard() {
+
+            const list = document.getElementById('leaderboard-list');
+
+            list.innerHTML = '<li>Loading scores...</li>';
+
+
+
+            const friendData = await dbGetUsersByFriendCodes(currentUser.friends);
+
+            const allPlayers = [{...currentUser}, ...friendData];
+
+
+
+            const leaderboardData = allPlayers
+
+                .map(player => ({
+
+                    name: (player.email || player._id).split('@')[0],
+
+                    stats: player.deathmatchStats || { highestScore: 0 }
+
+                }))
+
+                .filter(player => player.stats.highestScore > 0)
+
+                .sort((a, b) => b.stats.highestScore - a.stats.highestScore);
+
+            
+
+            list.innerHTML = '';
+
+            if (leaderboardData.length === 0) {
+
+                list.innerHTML = '<li>No scores yet. Play a Deathmatch game!</li>';
+
+                return;
+
+            }
+
+
+
+            leaderboardData.forEach((player, index) => {
+
+                const rank = index + 1;
+
+                const li = document.createElement('li');
+
+                li.classList.add(`rank-${rank}`);
+
+                li.innerHTML = `
+
+                    <span class="player-rank">#${rank}</span>
+
+                    <span class="player-name">${player.name}</span>
+
+                    <span class="player-score">${player.stats.highestScore}</span>
+
+                `;
+
+                list.appendChild(li);
+
+            });
+
+        }
+
+        
+
+        document.getElementById('back-to-menu-from-leaderboard-btn').addEventListener('click', () => {
+
+            showScreen(null);
+
+            bombermanContainer.classList.add('active');
+
+            if(bombermanGameInstance) {
+
+                 bombermanGameInstance.scene.resume('MainMenu');
+
+            }
+
+        });
+
+
+
+        // --- CHEAT CODE UI ---
+
+        function openCheatMenu() {
+
+            bombermanContainer.classList.remove('active');
+
+            showScreen(cheatScreen);
+
+        }
+
+        window.openCheatMenu = openCheatMenu;
+
+
+
+        document.getElementById('submit-cheat-btn').addEventListener('click', () => {
+
+            const cheatInput = document.getElementById('cheat-input');
+
+            const cheatCode = cheatInput.value.toLowerCase().trim();
+
+            const gameScene = bombermanGameInstance.scene.getScene('Game');
+
+            const messageEl = document.getElementById('cheat-message');
+
+            
+
+            let result = false;
+
+            if (gameScene) {
+
+                result = gameScene.applyCheat(cheatCode);
+
+            }
+
+
+
+            if (result) {
+
+                messageEl.style.color = '#4CAF50';
+
+                messageEl.style.borderColor = '#4CAF50';
+
+                showError('cheat-message', `Cheat '${cheatCode}' applied!`);
+
+                setTimeout(() => {
+
+                    document.getElementById('back-from-cheat-btn').click();
+
+                }, 1000);
+
+            } else {
+
+                messageEl.style.color = '#ff5555';
+
+                messageEl.style.borderColor = '#ff5555';
+
+                showError('cheat-message', 'Invalid cheat code.');
+
+            }
+
+            cheatInput.value = '';
+
+        });
+
+
+
+        document.getElementById('back-from-cheat-btn').addEventListener('click', () => {
+
+            hideError('cheat-message');
+
+            showScreen(null); // Hide all UI containers
+
+            bombermanContainer.classList.add('active');
+
+            // The PauseMenu scene is still running, so just showing the container is enough.
+
+        });
+
+
+
+
+
+        // --- PHASER GAME CODE ---
+
+        function startEnhancedGame() {
+
+            const ENEMY_DIRECTION_ENUM = { UP: 0, LEFT: 1, RIGHT: 2, DOWN: 3 };
+
+            const ENEMY_ENUM = { BALLOM: 'ballom', ONIL: 'onil', MINVO: 'minvo', DAHL: 'dahl', OVAPE: 'ovape', PONTAN: 'pontan', PASS: 'pass' };
+
+            const ENEMY_MOTION_ENUM = { FIRST_LEVEL: 0, SECOND_LEVEL: 1 };
+
+            const GAME_STAGE_ENUM = { ONE: 0, TWO: 1, THREE: 2, FOUR: 3, FIVE: 4, FINAL_BONUS: 5 };
+
+            const GAME_STATUS_ENUM = { START: 0, RESTART: 1, LOADED_GAME: 2, GAME_OVER: 3, NEXT_STAGE: 4, COMPLETED: 5 };
+
+            const PLAYER_DIRECTION_ENUM = { UP: 'up', LEFT: 'left', RIGHT: 'right', DOWN: 'down', IDLE: 'idle' };
+
+            const PLAYER_POWER_UP_ENUM = { BOMB_UP: 0, FIRE_UP: 1, SPEED_UP: 2, REMOTE_CONTROL: 3, WALL_PASS: 4, BOMB_PASS: 5, FLAME_PASS: 6 };
+
+            const TIMER_GAME_ENUM = { GAME: 0, PUT_BOMB: 1, EXPLOIT_BOMB: 2 };
+
+            const WALL_TO_BUILD_ENUM = { ISOLATED: 0, ROW: 1, COLUMN: 2 };
+
+            const getInitialGameStage = () => ({
+
+                time: 200,
+
+                lives: 3,
+
+                stage: GAME_STAGE_ENUM.ONE,
+
+                stageScore: 0,
+
+                totalScore: 0,
+
+                status: GAME_STATUS_ENUM.START,
+
+                powerUps: [],
+
+                gameMode: 'standard',
+
+                deathScore: 0,
+
+                enemiesKilled: {},
+
+            });
+
+            const getStagesData = () => [
+
+                { stage: GAME_STAGE_ENUM.ONE, powerUp: PLAYER_POWER_UP_ENUM.BOMB_UP, enemies: [{ type: ENEMY_ENUM.BALLOM, quantity: 6 }] },
+
+                { stage: GAME_STAGE_ENUM.TWO, powerUp: PLAYER_POWER_UP_ENUM.FIRE_UP, enemies: [{ type: ENEMY_ENUM.BALLOM, quantity: 3 }, { type: ENEMY_ENUM.ONIL, quantity: 4 }] },
+
+                { stage: GAME_STAGE_ENUM.THREE, powerUp: PLAYER_POWER_UP_ENUM.SPEED_UP, enemies: [{ type: ENEMY_ENUM.ONIL, quantity: 4 }, { type: ENEMY_ENUM.DAHL, quantity: 3 }] },
+
+                { stage: GAME_STAGE_ENUM.FOUR, powerUp: PLAYER_POWER_UP_ENUM.REMOTE_CONTROL, enemies: [{ type: ENEMY_ENUM.DAHL, quantity: 3 }, { type: ENEMY_ENUM.MINVO, quantity: 4 }] },
+
+                { stage: GAME_STAGE_ENUM.FIVE, powerUp: PLAYER_POWER_UP_ENUM.WALL_PASS, enemies: [{ type: ENEMY_ENUM.MINVO, quantity: 4 }, { type: ENEMY_ENUM.PASS, quantity: 3 }] },
+
+                { stage: GAME_STAGE_ENUM.FINAL_BONUS, powerUp: PLAYER_POWER_UP_ENUM.FLAME_PASS, enemies: [{ type: ENEMY_ENUM.PONTAN, quantity: 8 }] },
+
+            ];
+
+            const getEnemyData = () => [
+
+                { type: ENEMY_ENUM.BALLOM, textureKey: 'ballom', velocity: 40, rewardPoints: 100, motionEnemyType: ENEMY_MOTION_ENUM.FIRST_LEVEL, hasWallPassPowerUp: false },
+
+                { type: ENEMY_ENUM.ONIL, textureKey: 'onil', velocity: 50, rewardPoints: 200, motionEnemyType: ENEMY_MOTION_ENUM.FIRST_LEVEL, hasWallPassPowerUp: false },
+
+                { type: ENEMY_ENUM.DAHL, textureKey: 'dahl', velocity: 60, rewardPoints: 400, motionEnemyType: ENEMY_MOTION_ENUM.FIRST_LEVEL, hasWallPassPowerUp: false },
+
+                { type: ENEMY_ENUM.MINVO, textureKey: 'minvo', velocity: 70, rewardPoints: 800, motionEnemyType: ENEMY_MOTION_ENUM.FIRST_LEVEL, hasWallPassPowerUp: false },
+
+                { type: ENEMY_ENUM.OVAPE, textureKey: 'ovape', velocity: 55, rewardPoints: 1000, motionEnemyType: ENEMY_MOTION_ENUM.FIRST_LEVEL, hasWallPassPowerUp: true },
+
+                { type: ENEMY_ENUM.PASS, textureKey: 'pass', velocity: 80, rewardPoints: 2000, motionEnemyType: ENEMY_MOTION_ENUM.SECOND_LEVEL, hasWallPassPowerUp: false },
+
+                { type: ENEMY_ENUM.PONTAN, textureKey: 'pontan', velocity: 90, rewardPoints: 4000, motionEnemyType: ENEMY_MOTION_ENUM.SECOND_LEVEL, hasWallPassPowerUp: false },
+
+            ];
+
+            const deathmatchEnemyTiers = [
+
+                { time: 0, enemies: [ENEMY_ENUM.BALLOM, ENEMY_ENUM.ONIL] },
+
+                { time: 30, enemies: [ENEMY_ENUM.DAHL, ENEMY_ENUM.MINVO] },
+
+                { time: 60, enemies: [ENEMY_ENUM.OVAPE, ENEMY_ENUM.PASS] },
+
+                { time: 90, enemies: [ENEMY_ENUM.PONTAN] }
+
+            ];
+
+            const getPlayerPowerUps = () => [
+
+                // PATH FIX: Updated texture keys to match the new unique keys loaded in the Preloader.
+
+                { id: PLAYER_POWER_UP_ENUM.BOMB_UP, textureKey: 'bomb-up' },
+
+                { id: PLAYER_POWER_UP_ENUM.FIRE_UP, textureKey: 'fire-up' },
+
+                { id: PLAYER_POWER_UP_ENUM.REMOTE_CONTROL, textureKey: 'remote-control' },
+
+                { id: PLAYER_POWER_UP_ENUM.SPEED_UP, textureKey: 'speed-up' },
+
+                { id: PLAYER_POWER_UP_ENUM.WALL_PASS, textureKey: 'wall-pass' },
+
+                { id: PLAYER_POWER_UP_ENUM.BOMB_PASS, textureKey: 'bomb-up' }, // Note: No 'bomb-pass.png' was provided, reusing 'bomb-up'
+
+                { id: PLAYER_POWER_UP_ENUM.FLAME_PASS, textureKey: 'flame-pass' },
+
+            ];
+
+            const getExplosionData = () => [
+
+                { textureKey: 'explosion-center', spriteXOffset: 0, spriteYOffset: 0, tileXOffset: 0, tileYOffset: 0 },
+
+                { textureKey: 'explosion-upper-lenght', textureKeyExtension: 'explosion-extension-vertical', spriteXOffset: 0, spriteYOffset: -35, tileXOffset: 0, tileYOffset: -40 },
+
+                { textureKey: 'explosion-lower-lenght', textureKeyExtension: 'explosion-extension-vertical', spriteXOffset: 0, spriteYOffset: 35, tileXOffset: 0, tileYOffset: 40 },
+
+                { textureKey: 'explosion-left-lenght', textureKeyExtension: 'explosion-extension-horizontal', spriteXOffset: -35, spriteYOffset: 0, tileXOffset: -40, tileYOffset: 0 },
+
+                { textureKey: 'explosion-right-lenght', textureKeyExtension: 'explosion-extension-horizontal', spriteXOffset: 35, spriteYOffset: 0, tileXOffset: 40, tileYOffset: 0 },
+
+            ];
+
+            class Wall extends Phaser.Physics.Arcade.Sprite {
+
+                constructor({ scene, x, y }) { super(scene, x, y, 'wall', 0); this.setScale(2.5); }
+
+                kill() { if (this.body?.enable) { this.disableBody(false); this.play('wall-explosion').once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => { this.destroy(true); }); } }
+
+            }
+
+            class WallGroup extends Phaser.Physics.Arcade.StaticGroup {
+
+                constructor({ world, scene }) { super(world, scene); this.classType = Wall; this._setUpAnimations(); }
+
+                _setUpAnimations() { if (!this.scene.anims.exists('wall-explosion')) this.scene.anims.create({ key: 'wall-explosion', frames: this.scene.anims.generateFrameNumbers('wall-explosion'), frameRate: 12, }); }
+
+            }
+
+            class Bomb extends Phaser.Physics.Arcade.Sprite {
+
+                constructor({ scene, x, y }) { super(scene, x, y, 'bomb'); this.setScale(1.8); this._setUpAnimations(); this.play('wait'); }
+
+                _setUpAnimations() { this.anims.create({ key: 'wait', frames: this.anims.generateFrameNumbers('bomb'), frameRate: 3, repeat: -1, }); }
+
+            }
+
+            class ExplosionFragment extends Phaser.Physics.Arcade.Sprite {
+
+                constructor({ scene, x, y, textureKey, isVisible }) { super(scene, x, y, textureKey); scene.physics.add.existing(this); this.setScale(2.4); this.setVisible(isVisible); this.setImmovable(true); this.setBodySize(this.width - 5, this.height - 5); this.play(textureKey).once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => { this.destroy(true); }); }
+
+            }
+
+            class WallBuilderManager {
+
+                constructor({ roads, crossroads, minWalls, maxWalls }) { this._freePositions = []; this._minWalls = minWalls; this._maxWalls = maxWalls; this._wallTypes = [WALL_TO_BUILD_ENUM.ISOLATED, WALL_TO_BUILD_ENUM.COLUMN, WALL_TO_BUILD_ENUM.ROW]; this._setUp(roads, crossroads); }
+
+                _setUp(roads, crossroads) { const freePositions = [...roads.map((item) => ({ x: item.x ?? 0, y: item.y ?? 0 })), ...crossroads.map((item) => ({ x: item.x ?? 0, y: item.y ?? 0 })),]; this._freePositions = freePositions; }
+
+                _isIllegalPositions(position) { return ((position.x === 60 && position.y === 120) || (position.x === 60 && position.y === 160) || (position.x === 100 && position.y === 120)); }
+
+                pickSafeRndFreePosition() { const index = Phaser.Math.RND.between(0, this._freePositions.length - 1); const element = this._freePositions[index]; if (this._isIllegalPositions(element)) { return this.pickSafeRndFreePosition(); } return { element, index }; }
+
+                buildWallsFromArray(walls, addWallSpriteFn) { for (const position of walls) { addWallSpriteFn(position.x, position.y); this.deletePositionFree(position.x, position.y); } }
+
+                buildWalls(addWallSpriteFn) { const wallNumber = Phaser.Math.RND.between(this._minWalls, this._maxWalls); let i = 0; while (i < wallNumber) { const indexTmp = Phaser.Math.RND.between(0, this._wallTypes.length - 1); const wallTypeToBuild = this._wallTypes[indexTmp]; const { element, index } = this.pickSafeRndFreePosition(); switch (wallTypeToBuild) { case WALL_TO_BUILD_ENUM.ISOLATED: addWallSpriteFn(element.x, element.y); this._freePositions.splice(index, 1); i++; break; case WALL_TO_BUILD_ENUM.ROW: i += this._allocateWallsInAxis({ posWall: element, posWallsInAxis: this._freePositions.filter((wall) => wall.y === element.y), addWallSpriteFn, }); break; case WALL_TO_BUILD_ENUM.COLUMN: i += this._allocateWallsInAxis({ posWall: element, posWallsInAxis: this._freePositions.filter((wall) => wall.x === element.x), addWallSpriteFn, }); break; } } }
+
+                _allocateWallsInAxis({ posWall, posWallsInAxis, addWallSpriteFn }) { let blockLenght = Phaser.Math.RND.between(2, 4); if (blockLenght > posWallsInAxis.length) { blockLenght = posWallsInAxis.length; } const startIndex = posWallsInAxis.findIndex((wall) => wall.x === posWall.x && wall.y === posWall.y); let blockLenghtTmp = blockLenght; for (let i = startIndex; i < posWallsInAxis.length && blockLenghtTmp > 0; i++) { if (this._isIllegalPositions(posWallsInAxis[i])) continue; addWallSpriteFn(posWallsInAxis[i].x, posWallsInAxis[i].y); this.deletePositionFree(posWallsInAxis[i].x, posWallsInAxis[i].y); blockLenghtTmp--; } for (let i = startIndex; i >= 0 && blockLenghtTmp > 0; i--) { if (this._isIllegalPositions(posWallsInAxis[i])) continue; addWallSpriteFn(posWallsInAxis[i].x, posWallsInAxis[i].y); this.deletePositionFree(posWallsInAxis[i].x, posWallsInAxis[i].y); blockLenghtTmp--; } return blockLenght; }
+
+                isPositionFree(x, y) { return this.freePositions.findIndex((item) => item.x === x && item.y === y) > -1; }
+
+                addPositionFree(x, y) { return this.freePositions.push({ x, y }); }
+
+                deletePositionFree(x, y) { const indexToDelete = this.freePositions.findIndex((item) => item.x === x && item.y === y); if (indexToDelete > -1) { this._freePositions.splice(indexToDelete, 1); } }
+
+                get freePositions() { return this._freePositions; }
+
+            }
+
+            class ExplosionGroup extends Phaser.Physics.Arcade.Group {
+
+                constructor({ world, scene, wallBuilderManager, inputManager }) {
+
+                    super(world, scene);
+
+                    this.classType = ExplosionFragment;
+
+                    this._explosionLength = 0;
+
+                    this._explosionProperties = getExplosionData();
+
+                    this._wallBuilderManager = wallBuilderManager;
+
+                    this._inputManager = inputManager; // Store input manager for haptics
+
+                    this._setUpAnimations();
+
+                }
+
+                _setUpAnimations() { for (const explosionAnim of this._explosionProperties) { const frames = this.scene.anims.generateFrameNumbers(explosionAnim.textureKey); this._createAnimationByData(explosionAnim.textureKey, frames); } const explosionExtensions = new Set(this._explosionProperties.filter((item) => item.textureKeyExtension !== undefined).map((item) => item.textureKeyExtension ?? '')); for (const explosionAnim of explosionExtensions) { const frames = this.scene.anims.generateFrameNumbers(explosionAnim); this._createAnimationByData(explosionAnim, frames); } }
+
+                _createAnimationByData(animationKey, frames) { if (!this.scene.anims.exists(animationKey)) this.scene.anims.create({ key: animationKey, frames: frames, frameRate: 12, yoyo: true, }); }
+
+                addNewExplosion(bombX, bombY) {
+
+                    for (const explosionData of this._explosionProperties) {
+
+                        const spriteX = bombX + explosionData.spriteXOffset;
+
+                        const spriteY = bombY + explosionData.spriteYOffset;
+
+                        const tileX = bombX + explosionData.tileXOffset;
+
+                        const tileY = bombY + explosionData.tileYOffset;
+
+                        const explosionProps = { spriteX, spriteY, tileX, tileY };
+
+                        const canAddFinalExtension = this._addExplosionExtension(explosionProps, explosionData);
+
+                        if (canAddFinalExtension) {
+
+                            const isOrigin = explosionData.tileXOffset === 0 && explosionData.tileYOffset === 0;
+
+                            this._addExplosionSprite(explosionProps, explosionData.textureKey, isOrigin);
+
+                        }
+
+                    }
+
+                    this.scene.sound.play('explosion');
+
+                    this._inputManager.rumble(250, 0.9, 0.7); // Trigger explosion haptics
+
+                }
+
+                _addExplosionExtension(explosionProps, explosionData) { if (explosionData.textureKeyExtension) { for (let i = 0; i < this._explosionLength; i++) { const canContinue = this._addExplosionSprite(explosionProps, explosionData.textureKeyExtension, false); if (!canContinue) { return false; } explosionProps.spriteX += explosionData.spriteXOffset; explosionProps.spriteY += explosionData.spriteYOffset; explosionProps.tileX += explosionData.tileXOffset; explosionProps.tileY += explosionData.tileYOffset; } } return true; }
+
+                _addExplosionSprite(explosionProps, textureKey, isOrigin) { let isBusyPosition = this._isBusyPosition(explosionProps); if (isOrigin) { isBusyPosition = false; } const gameObject = new ExplosionFragment({ scene: this.scene, x: explosionProps.spriteX, y: explosionProps.spriteY, textureKey, isVisible: !isBusyPosition, }); this.add(gameObject, true); return !isBusyPosition; }
+
+                _isBusyPosition(explosionProps) { return !this._wallBuilderManager.isPositionFree(explosionProps.tileX, explosionProps.tileY); }
+
+                get explosionLength() { return this._explosionLength; }
+
+                set explosionLength(v) { this._explosionLength = v; }
+
+            }
+
+            class BombGroup extends Phaser.Physics.Arcade.StaticGroup {
+
+                constructor({ world, scene, wallBuilderManager, inputManager }) {
+
+                    super(world, scene);
+
+                    this.classType = Bomb;
+
+                    this._timers = new Map();
+
+                    this._maxAmountBombs = 1;
+
+                    this._isActiveRemoteControl = false;
+
+                    this._timePutBomb = 0;
+
+                    this._timeExplosion = 2;
+
+                    this._wallBuilderManager = wallBuilderManager;
+
+                    this._inputManager = inputManager; // Store input manager
+
+                    this._explosionGroup = new ExplosionGroup({ world, scene, wallBuilderManager, inputManager });
+
+                }
+
+                putBomb(x, y) {
+
+                    if (this._canPutBomb(x, y)) {
+
+                        this.scene.sound.play('put-bomb');
+
+                        this._inputManager.rumble(80, 0, 0.6); // Trigger put bomb haptics
+
+                        const newBomb = new Bomb({ scene: this.scene, x, y });
+
+                        this.add(newBomb, true);
+
+                        this._wallBuilderManager.deletePositionFree(x, y);
+
+                        if (!this.isActiveRemoteControl) {
+
+                            this._setExplodeBombTimer(newBomb);
+
+                        }
+
+                        this._setPutBombTimer();
+
+                    }
+
+                }
+
+                exploitByBomb(bomb) { this._exploitBomb(bomb); }
+
+                exploitNextBomb() { if (this._canExploitBomb()) { const bomb = this.getFirstAlive(); this._exploitBomb(bomb); } }
+
+                _exploitBomb(bomb) { if (bomb.body) { const posX = Math.floor(bomb.body.center.x); const posY = Math.floor(bomb.body.center.y); const timerFreePosition = new Phaser.Time.TimerEvent({ delay: 400, callback: () => { this._wallBuilderManager.addPositionFree(posX, posY); }, callbackScope: this, }); this.scene.time.addEvent(timerFreePosition); this._explosionGroup.addNewExplosion(posX, posY); bomb.destroy(true); } }
+
+                _setPutBombTimer() { const _timerPutBomb = new Phaser.Time.TimerEvent({ delay: 1000, repeat: this._timePutBomb, callbackScope: this, }); this.scene.time.addEvent(_timerPutBomb); this._timers.set(TIMER_GAME_ENUM.PUT_BOMB, _timerPutBomb); }
+
+                _setExplodeBombTimer(bomb) { const _timerExploitBomb = new Phaser.Time.TimerEvent({ delay: 1000, repeat: this._timeExplosion, callback: () => { if (_timerExploitBomb.repeatCount <= 0) { this._exploitBomb(bomb); } }, callbackScope: this, }); this.scene.time.addEvent(_timerExploitBomb); }
+
+                _canPutBomb(x, y) { const _timerPutBomb = this._timers.get(TIMER_GAME_ENUM.PUT_BOMB); if (!this._wallBuilderManager.isPositionFree(x, y)) return false; return (_timerPutBomb === undefined || _timerPutBomb?.repeatCount === 0) && this.getTotalUsed() < this._maxAmountBombs; }
+
+                _canExploitBomb() { return this._isActiveRemoteControl && this.getTotalUsed() > 0; }
+
+                get explosionGroup() { return this._explosionGroup; }
+
+                get maxAmountBombs() { return this._maxAmountBombs; }
+
+                set maxAmountBombs(v) { this._maxAmountBombs = v; }
+
+                get isActiveRemoteControl() { return this._isActiveRemoteControl; }
+
+                set isActiveRemoteControl(v) { this._isActiveRemoteControl = v; }
+
+            }
+
+            /**
+
+             * NEW CLASS: InputManager
+
+             * Handles both keyboard and gamepad input, and haptic feedback.
+
+             */
+
+            class InputManager {
+
+                constructor(scene) {
+
+                    this.scene = scene;
+
+                    // FIX: Removed the single-time connection listener.
+
+                    // The active gamepad will be checked in each input method instead.
+
+
+
+                    // Setup keyboard controls
+
+                    if (scene.input.keyboard) {
+
+                        this.keyboard = {
+
+                            cursorKeys: scene.input.keyboard.createCursorKeys(),
+
+                            putBomb: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X),
+
+                            exploitBomb: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
+
+                            pause: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
+
+                        };
+
+                    } else {
+
+                        this.keyboard = null;
+
+                    }
+
+                }
+
+
+
+                // Check movement inputs from either keyboard or gamepad
+
+                isMovingUp() {
+
+                    const pad = this.scene.input.gamepad.pad1;
+
+                    return this.keyboard?.cursorKeys.up.isDown || (pad && (pad.axes[1].getValue() < -0.3 || pad.buttons[12].pressed));
+
+                }
+
+                isMovingDown() {
+
+                    const pad = this.scene.input.gamepad.pad1;
+
+                    return this.keyboard?.cursorKeys.down.isDown || (pad && (pad.axes[1].getValue() > 0.3 || pad.buttons[13].pressed));
+
+                }
+
+                isMovingLeft() {
+
+                    const pad = this.scene.input.gamepad.pad1;
+
+                    return this.keyboard?.cursorKeys.left.isDown || (pad && (pad.axes[0].getValue() < -0.3 || pad.buttons[14].pressed));
+
+                }
+
+                isMovingRight() {
+
+                    const pad = this.scene.input.gamepad.pad1;
+
+                    return this.keyboard?.cursorKeys.right.isDown || (pad && (pad.axes[0].getValue() > 0.3 || pad.buttons[15].pressed));
+
+                }
+
+
+
+                // Check action inputs from either keyboard or gamepad
+
+                justPressedPutBomb() {
+
+                    const pad = this.scene.input.gamepad.pad1;
+
+                    return Phaser.Input.Keyboard.JustDown(this.keyboard?.putBomb) || (pad && pad.buttons[0].justPressed);
+
+                }
+
+                justPressedExploitBomb() {
+
+                    const pad = this.scene.input.gamepad.pad1;
+
+                    return Phaser.Input.Keyboard.JustDown(this.keyboard?.exploitBomb) || (pad && pad.buttons[2].justPressed);
+
+                }
+
+                justPressedPause() {
+
+                    const pad = this.scene.input.gamepad.pad1;
+
+                    return Phaser.Input.Keyboard.JustDown(this.keyboard?.pause) || (pad && pad.buttons[9].justPressed);
+
+                }
+
+                 justPressedBack() {
+
+                    const pad = this.scene.input.gamepad.pad1;
+
+                    return (pad && pad.buttons[1].justPressed);
+
+                }
+
+
+
+                // Trigger haptic feedback (vibration)
+
+                rumble(duration = 100, strong = 1.0, weak = 1.0) {
+
+                    const pad = this.scene.input.gamepad.pad1;
+
+                    if (pad && pad.vibrationActuator) {
+
+                        pad.vibrationActuator.playEffect('dual-rumble', {
+
+                            startDelay: 0,
+
+                            duration: duration,
+
+                            weakMagnitude: weak,
+
+                            strongMagnitude: strong,
+
+                        });
+
+                    }
+
+                }
+
+            }
+
+            class GameRulesControlManager {
+
+                constructor(scene) { this._saveGameControl = undefined; this._setUpControls(scene); }
+
+                _setUpControls(scene) { if (scene.input.keyboard) { this._saveGameControl = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S); } }
+
+                get saveGameControl() { return this._saveGameControl; }
+
+            }
+
+            class Player extends Phaser.Physics.Arcade.Sprite {
+
+                constructor({ scene, x, y, bombGroup, gameStage, savedGame, inputManager }) {
+
+                    super(scene, x, y, 'bomberman-move');
+
+                    this._direction = PLAYER_DIRECTION_ENUM.IDLE;
+
+                    this._speed = 150;
+
+                    this._isInvincible = false;
+
+                    this._hasWallPassPowerUp = false;
+
+                    this._hasBombPassPowerUp = false;
+
+                    this._hasFlamePassPowerUp = false;
+
+                    this._lastTilePassedPosition = { x, y };
+
+                    this._bombGroup = bombGroup;
+
+                    this._savedGame = savedGame;
+
+                    this._inputManager = inputManager; // Store the unified input manager
+
+                    scene.add.existing(this);
+
+                    scene.physics.add.existing(this);
+
+                    this.setScale(2.0);
+
+                    this.setBodySize(this.width - 5, this.height);
+
+                    this._validateSavedPlayer(gameStage);
+
+                    this._setUpAnimations();
+
+                    this.scene.cameras.main.startFollow(this);
+
+                }
+
+                _validateSavedPlayer(gameStage) { if (gameStage.status === GAME_STATUS_ENUM.LOADED_GAME && this._savedGame) { const { player } = this._savedGame; this.setPosition(player.x, player.y); } }
+
+                _setUpAnimations() { 
+
+                    this.anims.create({ key: PLAYER_DIRECTION_ENUM.LEFT, frames: this.anims.generateFrameNumbers('bomberman-move', { frames: [0, 1, 2] }), frameRate: 10, repeat: -1 }); 
+
+                    this.anims.create({ key: PLAYER_DIRECTION_ENUM.RIGHT, frames: this.anims.generateFrameNumbers('bomberman-move', { frames: [3, 4, 5] }), frameRate: 10, repeat: -1 }); 
+
+                    this.anims.create({ key: PLAYER_DIRECTION_ENUM.DOWN, frames: this.anims.generateFrameNumbers('bomberman-move', { frames: [6, 7, 8] }), frameRate: 10, repeat: -1 }); 
+
+                    this.anims.create({ key: PLAYER_DIRECTION_ENUM.UP, frames: this.anims.generateFrameNumbers('bomberman-move', { start: 9, end: 10 }), frameRate: 10, repeat: -1 }); 
+
+                    this.anims.create({ key: 'die', frames: this.anims.generateFrameNumbers('bomberman-dead'), frameRate: 8 }); 
+
+                }
+
+                _playSoundByKey(key) { let sound = this.scene.sound.get(key); if (sound === null) { sound = this.scene.sound.add(key); } if (!sound.isPlaying) { sound.play({ volume: 0.4 }); } }
+
+                _playAnimationByKey(key, soundWalkingKey) { if (this._direction != key) { this.play(key); this._direction = key; return; } if (!this.anims.isPlaying) this.anims.nextFrame(); this._playSoundByKey(soundWalkingKey); }
+
+                addControlsListener() {
+
+                    if (this.body?.enable) {
+
+                        this.setVelocity(0);
+
+                        // Use the new input manager for all checks
+
+                        if (this._inputManager.isMovingRight()) {
+
+                            this.setVelocityX(this._speed);
+
+                            this._playAnimationByKey(PLAYER_DIRECTION_ENUM.RIGHT, 'walking-x');
+
+                            return;
+
+                        }
+
+                        if (this._inputManager.isMovingLeft()) {
+
+                            this.setVelocityX(-this._speed);
+
+                            this._playAnimationByKey(PLAYER_DIRECTION_ENUM.LEFT, 'walking-x');
+
+                            return;
+
+                        }
+
+                        if (this._inputManager.isMovingUp()) {
+
+                            this.setVelocityY(-this._speed);
+
+                            this._playAnimationByKey(PLAYER_DIRECTION_ENUM.UP, 'walking-y');
+
+                            return;
+
+                        }
+
+                        if (this._inputManager.isMovingDown()) {
+
+                            this.setVelocityY(this._speed);
+
+                            this._playAnimationByKey(PLAYER_DIRECTION_ENUM.DOWN, 'walking-y');
+
+                            return;
+
+                        }
+
+                        if (this._inputManager.justPressedPutBomb()) {
+
+                            this._bombGroup.putBomb(this._lastTilePassedPosition.x, this._lastTilePassedPosition.y);
+
+                        }
+
+                        if (this._inputManager.justPressedExploitBomb()) {
+
+                            this._bombGroup.exploitNextBomb();
+
+                        }
+
+                        if (this._direction != PLAYER_DIRECTION_ENUM.IDLE) {
+
+                            this.stop();
+
+                            this._direction = PLAYER_DIRECTION_ENUM.IDLE;
+
+                        }
+
+                    }
+
+                }
+
+                kill() { this.setVelocity(0); this.disableBody(false); this.setImmovable(true); this.scene.game.sound.stopAll(); this.scene.sound.play('lose'); this.play({ key: 'die', hideOnComplete: true }).on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => { this.scene.sound.play('just-died'); }, this); }
+
+                respawn() { this.speed = 150; this.hasWallPassPowerUp = false; this.hasBombPassPowerUp = false; this.hasFlamePassPowerUp = false; this.scene._bombGroup.maxAmountBombs = 1; this.scene._bombGroup.explosionGroup.explosionLength = 0; this.scene._bombGroup.isActiveRemoteControl = false; if (this.scene._gameStage.gameMode === 'deathmatch') { this.scene._gameStage.powerUps = []; } this.isInvincible = true; this.setPosition(60, 120); this.setVisible(true); this.enableBody(true, 60, 120, true, true); this.scene.tweens.add({ targets: this, alpha: 0.5, ease: 'Cubic.easeOut', duration: 150, repeat: 10, yoyo: true, onComplete: () => { this.isInvincible = false; this.setAlpha(1); } }); }
+
+                validateTileOverlap(tile) { if (tile.body && this.body) { const playerCenterX = Math.round(this.body.center.x); const playerCenterY = Math.round(this.body.center.y); const tileCenterX = Math.floor(tile.body.center.x); const tileCenterY = Math.floor(tile.body.center.y); const deltaX = Math.abs(playerCenterX - tileCenterX); const deltaY = Math.abs(playerCenterY - tileCenterY); return deltaX <= 10 && deltaY <= 10; } return false; }
+
+                getSavedState() { return { x: this.body?.center.x ?? 0, y: this.body?.center.y ?? 0 }; }
+
+                get isInvincible() { return this._isInvincible; }
+
+                set isInvincible(v) { this._isInvincible = v; }
+
+                get speed() { return this._speed; }
+
+                set speed(v) { this._speed = v; }
+
+                get hasWallPassPowerUp() { return this._hasWallPassPowerUp; }
+
+                set hasWallPassPowerUp(v) { this._hasWallPassPowerUp = v; }
+
+                get hasBombPassPowerUp() { return this._hasBombPassPowerUp; }
+
+                set hasBombPassPowerUp(v) { this._hasBombPassPowerUp = v; }
+
+                get hasFlamePassPowerUp() { return this._hasFlamePassPowerUp; }
+
+                set hasFlamePassPowerUp(v) { this._hasFlamePassPowerUp = v; }
+
+                get lastTilePassedPosition() { return this._lastTilePassedPosition; }
+
+                set lastTilePassedPosition(v) { this._lastTilePassedPosition = v; }
+
+            }
+
+            class BaseEnemyMotion {
+
+                constructor(player, enemyBody) { this._player = player; this._enemyBody = enemyBody; this._direction = ENEMY_DIRECTION_ENUM.LEFT; this._directions = [ENEMY_DIRECTION_ENUM.LEFT, ENEMY_DIRECTION_ENUM.RIGHT, ENEMY_DIRECTION_ENUM.UP, ENEMY_DIRECTION_ENUM.DOWN]; this._retracedMotions = 0; this._MAX_RETRACED_MOTIONS = 5; }
+
+                computeNewDirection() { throw new Error('Method not implemented.'); }
+
+                _getOppositeDirection(direction) { switch (direction) { case ENEMY_DIRECTION_ENUM.LEFT: return ENEMY_DIRECTION_ENUM.RIGHT; case ENEMY_DIRECTION_ENUM.RIGHT: return ENEMY_DIRECTION_ENUM.LEFT; case ENEMY_DIRECTION_ENUM.UP: return ENEMY_DIRECTION_ENUM.DOWN; case ENEMY_DIRECTION_ENUM.DOWN: return ENEMY_DIRECTION_ENUM.UP; default: throw new Error('Direction type is invalid'); } }
+
+                _getRndDirectionByExclusion(directionExcluded) { const newDirections = this._directions.filter((item) => item !== directionExcluded); const index = Phaser.Math.RND.between(0, newDirections.length - 1); return newDirections[index]; }
+
+                retraceMotion() { const newDirection = this._getOppositeDirection(this._direction); if (this._retracedMotions >= this._MAX_RETRACED_MOTIONS) { this._direction = this._getRndDirectionByExclusion(newDirection); this._retracedMotions = 0; return; } if (newDirection !== undefined) { this._direction = newDirection; this._retracedMotions++; } }
+
+                validateCrossroadOverlap(enemyPosition, tilePosition) { if (this._enemyBody?.velocity.x === 0 && this._enemyBody?.velocity.y === 0) return false; const enemyCrossroadPos = { x: enemyPosition.x ?? 0, y: enemyPosition.y ?? 0 }; if (tilePosition && tilePosition.x === enemyCrossroadPos?.x && tilePosition.y === enemyCrossroadPos?.y) return false; const enemyPos = { x: this._enemyBody?.center.x ?? 0, y: this._enemyBody?.center.y ?? 0 }; const enemyCenterX = Math.round(enemyPos.x); const enemyCenterY = Math.round(enemyPos.y); const tileCenterX = Math.floor(tilePosition.x); const tileCenterY = Math.floor(tilePosition.y); const deltaX = Math.abs(enemyCenterX - tileCenterX); const deltaY = Math.abs(enemyCenterY - tileCenterY); return deltaX <= 5 && deltaY <= 5; }
+
+                get direction() { return this._direction; }
+
+                set direction(v) { this._direction = v; }
+
+                get directions() { return this._directions; }
+
+                get retracedMotions() { return this._retracedMotions; }
+
+                set retracedMotions(v) { this._retracedMotions = v; }
+
+                get player() { return this._player; }
+
+                get enemyBody() { return this._enemyBody; }
+
+            }
+
+            class FirstLevelEnemyMotion extends BaseEnemyMotion {
+
+                constructor(player, enemyBody) { super(player, enemyBody); }
+
+                computeNewDirection() { this.retracedMotions = 0; const index = Phaser.Math.RND.between(0, this.directions.length - 1); this.direction = this.directions[index]; }
+
+            }
+
+            class SecondLevelEnemyMotion extends BaseEnemyMotion {
+
+                constructor(player, enemyBody) { super(player, enemyBody); }
+
+                computeNewDirection() { if (this.enemyBody && this.player.body) { this.retracedMotions = 0; const playerCenterX = Math.round(this.player.body.center.x); const playerCenterY = Math.round(this.player.body.center.y); const enemyCenterX = Math.round(this.enemyBody.center.x); const enemyCenterY = Math.round(this.enemyBody.center.y); const deltaX = playerCenterX - enemyCenterX; const deltaY = playerCenterY - enemyCenterY; if (Math.abs(deltaX) > Math.abs(deltaY)) { this.direction = deltaX > 0 ? ENEMY_DIRECTION_ENUM.RIGHT : ENEMY_DIRECTION_ENUM.LEFT; return; } if (Math.abs(deltaY) > Math.abs(deltaX)) { this.direction = deltaY > 0 ? ENEMY_DIRECTION_ENUM.DOWN : ENEMY_DIRECTION_ENUM.UP; return; } if (deltaX !== 0) { this.direction = deltaX > 0 ? ENEMY_DIRECTION_ENUM.RIGHT : ENEMY_DIRECTION_ENUM.LEFT; } if (deltaY !== 0) { this.direction = deltaY > 0 ? ENEMY_DIRECTION_ENUM.DOWN : ENEMY_DIRECTION_ENUM.UP; } } }
+
+            }
+
+            class EnemyMotionFactory {
+
+                static getInstance({ type, player, enemyBody }) { switch (type) { case ENEMY_MOTION_ENUM.FIRST_LEVEL: return new FirstLevelEnemyMotion(player, enemyBody); case ENEMY_MOTION_ENUM.SECOND_LEVEL: return new SecondLevelEnemyMotion(player, enemyBody); } }
+
+            }
+
+            class Enemy extends Phaser.Physics.Arcade.Sprite {
+
+                constructor({ scene, x, y, enemyData, hasTemporalShield, player }) { super(scene, x, y, enemyData.textureKey); scene.physics.add.existing(this); this._enemyData = enemyData; this._player = player; this._animLeftKey = `${this._enemyData.type}-left`; this._animRightKey = `${this._enemyData.type}-right`; this._animDeadKey = `${this._enemyData.type}-dead`; this._hasTemporalShield = hasTemporalShield; this._mapCrossroadOffset = 50; this._lastCrossroadTouched = { x, y }; this.setScale(2.0); this._setUpTemporalShield(); }
+
+                _setUpTemporalShield() { if (this._hasTemporalShield) { const _temporalShieldTimer = new Phaser.Time.TimerEvent({ delay: 100, repeat: 40, callback: () => { this.setVisible(!this.visible); if (_temporalShieldTimer.repeatCount <= 0) { this.setVisible(true); this._hasTemporalShield = false; } }, callbackScope: this, }); this.scene.time.addEvent(_temporalShieldTimer); } }
+
+                _updateSpriteMotion(fromPosition) { if (this.body?.enable) { switch (this._motionManager?.direction) { case ENEMY_DIRECTION_ENUM.LEFT: this.play(this._animLeftKey); this.scene.physics.moveTo(this, fromPosition.x - this._mapCrossroadOffset, fromPosition.y, this._enemyData.velocity); break; case ENEMY_DIRECTION_ENUM.RIGHT: this.play(this._animRightKey); this.scene.physics.moveTo(this, fromPosition.x + this._mapCrossroadOffset, fromPosition.y, this._enemyData.velocity); break; case ENEMY_DIRECTION_ENUM.DOWN: this.play(this._animLeftKey); this.scene.physics.moveTo(this, fromPosition.x, fromPosition.y + this._mapCrossroadOffset, this._enemyData.velocity); break; case ENEMY_DIRECTION_ENUM.UP: this.play(this._animRightKey); this.scene.physics.moveTo(this, fromPosition.x, fromPosition.y - this._mapCrossroadOffset, this._enemyData.velocity); break; } } }
+
+                setMotionManager(type) { this._motionManager = EnemyMotionFactory.getInstance({ type, player: this._player, enemyBody: this.body }); }
+
+                dispatchMotion() { this.setVelocity(0); if (this._lastCrossroadTouched) { this.setPosition(this._lastCrossroadTouched.x, this._lastCrossroadTouched.y); this._motionManager?.computeNewDirection(); this._updateSpriteMotion({ x: this._lastCrossroadTouched.x, y: this._lastCrossroadTouched.y }); } }
+
+                retraceMotion() { this.setVelocity(0); if (this.body) { this._motionManager?.retraceMotion(); this._updateSpriteMotion({ x: this.body?.center.x, y: this.body?.center.y }); } }
+
+                validateCrossroadOverlap(tilePosition) { if (this._motionManager && this._lastCrossroadTouched) return this._motionManager.validateCrossroadOverlap({ x: this._lastCrossroadTouched?.x, y: this._lastCrossroadTouched?.y }, tilePosition); return false; }
+
+                kill() { this.disableBody(false); this.setImmovable(true); this.play(this._animDeadKey).once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => { this.play('destroy-enemy').once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => { if (this.body) { const rewardPoints = this.scene.add.text(this.body?.center.x, this.body?.center.y, this.enemyData.rewardPoints.toString()).setFontFamily('"BitBold", "Tahoma"').setFontSize(10).setColor('white').setStroke('black', 2.5); this.scene.time.addEvent({ delay: 2000, callback: () => rewardPoints.destroy(true), callbackScope: this }); } this.destroy(true); }); }); }
+
+                get enemyData() { return this._enemyData; }
+
+                get lastCrossroadTouched() { return this._lastCrossroadTouched; }
+
+                set lastCrossroadTouched(v) { this._lastCrossroadTouched = v; }
+
+                get hasTemporalShield() { return this._hasTemporalShield; }
+
+            }
+
+            class EnemyGroup extends Phaser.Physics.Arcade.Group {
+
+                constructor({ world, scene, wallBuilderManager, player, savedGame, gameStage }) { super(world, scene); this._enemyLevel = this._getEnemyLevelByKey(gameStage.stage); this._wallBuilderManager = wallBuilderManager; this._player = player; this._gameStage = gameStage; this._savedGame = savedGame; this.classType = Enemy; this._setUp(); }
+
+                _getEnemyLevelByKey(key) { const stages = getStagesData(); const stage = stages.find((item) => item.stage === key); return stage === undefined ? stages[0].enemies : stage.enemies; }
+
+                _getEnemyDataByKey(key) { const enemies = getEnemyData(); const enemyData = enemies.find((item) => item.type === key); return enemyData === undefined ? enemies[0] : enemyData; }
+
+                _setUp() { if (this._gameStage.gameMode === 'deathmatch') { this._createInitialDeathmatchEnemies(); } else if (this._gameStage.status === GAME_STATUS_ENUM.LOADED_GAME && this._savedGame) { this._createEnemiesFromData(this._savedGame.enemies); } else { this._createEnemies(); } this._setUpAnimations(); }
+
+                _createInitialDeathmatchEnemies() { const initialEnemyCount = 6; const enemyData = this._getEnemyDataByKey(ENEMY_ENUM.BALLOM); this._createAnimationByEnemy(enemyData); for (let i = 0; i < initialEnemyCount; i++) { const { element } = this._wallBuilderManager.pickSafeRndFreePosition(); this._createNewEnemy(element, enemyData, false); } }
+
+                spawnDeathmatchEnemy() { if (this.getTotalUsed() >= 10) return; const elapsedTime = this._gameStage.time; let availableEnemies = []; for(const tier of deathmatchEnemyTiers) { if (elapsedTime >= tier.time) { availableEnemies.push(...tier.enemies); } } const randomEnemyType = Phaser.Math.RND.pick(availableEnemies); const enemyData = this._getEnemyDataByKey(randomEnemyType); this._createAnimationByEnemy(enemyData); const { element } = this._wallBuilderManager.pickSafeRndFreePosition(); this._createNewEnemy(element, enemyData, true); }
+
+                _createEnemies() { for (const enemyInput of this._enemyLevel) { const enemyData = this._getEnemyDataByKey(enemyInput.type); this._createAnimationByEnemy(enemyData); for (let i = 0; i < enemyInput.quantity; i++) { const { element } = this._wallBuilderManager.pickSafeRndFreePosition(); this._createNewEnemy(element, enemyData, false); } } }
+
+                _createEnemiesFromData(enemies) { for (const enemyInput of enemies) { const enemyData = this._getEnemyDataByKey(enemyInput.enemyData.type); this._createAnimationByEnemy(enemyData); this._createNewEnemy({ x: enemyInput.x, y: enemyInput.y }, enemyData, false); } }
+
+                _setUpAnimations() { if (this._enemyLevel.find((item) => item.type === ENEMY_ENUM.PONTAN) === undefined) { const enemyData = this._getEnemyDataByKey(ENEMY_ENUM.PONTAN); this._createAnimationByEnemy(enemyData); } if (!this.scene.anims.exists('destroy-enemy')) this.scene.anims.create({ key: 'destroy-enemy', frames: this.scene.anims.generateFrameNumbers('destroy-enemy'), frameRate: 3, delay: 2000 }); }
+
+                _createAnimationByEnemy(enemy) { const { type } = enemy; const framesLeft = type === ENEMY_ENUM.PONTAN ? [0, 1, 2, 3, 4] : [0, 1, 2]; const framesRight = type === ENEMY_ENUM.PONTAN ? [7, 8, 9, 10, 11] : [4, 5, 6]; const framesDead = type === ENEMY_ENUM.PONTAN ? [Phaser.Math.RND.between(5, 6)] : [3]; if (!this.scene.anims.exists(`${type}-left`)) this.scene.anims.create({ key: `${type}-left`, frames: this.scene.anims.generateFrameNumbers(enemy.textureKey, { frames: framesLeft }), frameRate: 6, repeat: -1 }); if (!this.scene.anims.exists(`${type}-right`)) this.scene.anims.create({ key: `${type}-right`, frames: this.scene.anims.generateFrameNumbers(enemy.textureKey, { frames: framesRight }), frameRate: 6, repeat: -1 }); if (!this.scene.anims.exists(`${type}-dead`)) this.scene.anims.create({ key: `${type}-dead`, frames: this.scene.anims.generateFrameNumbers(enemy.textureKey, { frames: framesDead }), frameRate: 6 }); }
+
+                _createNewEnemy(position, enemyData, hasTemporalShield) { const newEnemy = new Enemy({ scene: this.scene, x: position.x, y: position.y, enemyData, hasTemporalShield, player: this._player }); this.add(newEnemy, true); newEnemy.setMotionManager(enemyData.motionEnemyType); newEnemy.dispatchMotion(); }
+
+                _getEnemiesPosition() { const positions = []; if (this.getTotalUsed() > 0) { this.getChildren().forEach((enemy) => { const _enemy = enemy; _enemy.setImmovable(true); positions.push({ x: Math.floor(_enemy.body?.center.x ?? 0), y: Math.floor(_enemy.body?.center.y ?? 0) }); }); return positions; } const enemiesToAdd = 7; for (let i = 0; i < enemiesToAdd; i++) { const { element } = this._wallBuilderManager.pickSafeRndFreePosition(); positions.push({ x: element.x, y: element.y }); } return positions; }
+
+                addRandomByPosition(x, y) { const enemiesNumber = Phaser.Math.RND.between(3, 6); const enemyType = this._enemyLevel[this._enemyLevel.length - 1]; const enemyData = this._getEnemyDataByKey(enemyType.type); for (let i = 0; i < enemiesNumber; i++) { this._createNewEnemy({ x, y }, enemyData, true); } }
+
+                replaceAllByType(type) { const enemyData = this._getEnemyDataByKey(type); this.clear(true, true); const enemyPositions = this._getEnemiesPosition(); for (const enemyPos of enemyPositions) { this._createNewEnemy(enemyPos, enemyData, false); } }
+
+                getSavedState() { return this.getChildren().map((enemy) => { const _enemy = enemy; return { x: Math.round(_enemy.body?.center.x ?? 0), y: Math.round(_enemy.body?.center.y ?? 0), enemyData: _enemy.enemyData }; }); }
+
+            }
+
+            class PowerUpManager {
+
+                constructor({ scene, player, bombGroup, gameStage }) { this._scene = scene; this._player = player; this._bombGroup = bombGroup; this._gameStage = gameStage; this._setUp(); }
+
+                _setUp() { for (const powerUp of this._gameStage.powerUps) { this._enablePowerUp(powerUp); } }
+
+                addPowerUp(powerUp) {
+
+                    if (this._gameStage.gameMode !== 'deathmatch') {
+
+                        this._scene.sound.stopByKey('stage-theme');
+
+                        this._scene.sound.play('find-the-door', { loop: true });
+
+                    }
+
+                    this._scene.sound.play('power-up');
+
+                    this._scene._inputManager.rumble(150, 0.3, 0.5); // Haptics for power-up
+
+                    this._gameStage.powerUps.push(powerUp);
+
+                    return this._enablePowerUp(powerUp);
+
+                }
+
+                _enablePowerUp(powerUp) { switch (powerUp) { case PLAYER_POWER_UP_ENUM.BOMB_UP: this._bombGroup.maxAmountBombs++; return 100; case PLAYER_POWER_UP_ENUM.FIRE_UP: this._bombGroup.explosionGroup.explosionLength++; return 150; case PLAYER_POWER_UP_ENUM.SPEED_UP: this._player.speed += 20; return 200; case PLAYER_POWER_UP_ENUM.REMOTE_CONTROL: this._bombGroup.isActiveRemoteControl = true; return 250; case PLAYER_POWER_UP_ENUM.WALL_PASS: this._player.hasWallPassPowerUp = true; return 300; case PLAYER_POWER_UP_ENUM.BOMB_PASS: this._player.hasBombPassPowerUp = true; return 350; case PLAYER_POWER_UP_ENUM.FLAME_PASS: this._player.hasFlamePassPowerUp = true; return 400; default: throw new Error('Power Up invalid'); } }
+
+            }
+
+            class GameRulesManager {
+
+                constructor({ scene, gameStage, player, enemiesGroup, inputManager }) {
+
+                    this._scene = scene;
+
+                    this._gameStage = gameStage;
+
+                    this._player = player;
+
+                    this._enemiesGroup = enemiesGroup;
+
+                    this._inputManager = inputManager; // Store input manager
+
+                    this._labels = this._scene.add.group();
+
+                    this._timers = new Map();
+
+                    this._setUp();
+
+                }
+
+                _setUp() { const style = { font: '15px BitBold', fill: 'white', stroke: 'black', strokeThickness: 2.5 }; let distanceX = 22; const timeLabelText = this._gameStage.gameMode === 'deathmatch' ? `TIME 0` : `TIME ${this._gameStage.time}`; const information = this._scene.add.text(distanceX, 22, timeLabelText, style); information.setScrollFactor(0, 0); information.name = 'TIME'; this._labels.add(information); distanceX += 170; const scoreLabelText = this._gameStage.gameMode === 'deathmatch' ? `SCORE ${this._gameStage.deathScore}` : this._gameStage.stageScore.toString(); const score = this._scene.add.text(distanceX, 22, scoreLabelText, style); score.setScrollFactor(0, 0); score.name = 'SCORE'; this._labels.add(score); distanceX += 128; const lives = this._scene.add.text(distanceX, 22, `LEFT ${this._gameStage.lives}`, style); lives.setScrollFactor(0, 0); lives.name = 'LEFT'; this._labels.add(lives); if (this._gameStage.gameMode === 'deathmatch') { this._gameStage.time = 0; const _timerGame = new Phaser.Time.TimerEvent({ delay: 1000, loop: true, callback: () => { this._gameStage.time++; this._setLabelTextByKey('TIME', `TIME ${this._gameStage.time}`); }, callbackScope: this, }); this._scene.time.addEvent(_timerGame); this._timers.set(TIMER_GAME_ENUM.GAME, _timerGame); } else { const _timerGame = new Phaser.Time.TimerEvent({ delay: 1000, repeat: this._gameStage.time, callback: () => { if (_timerGame.repeatCount <= 0) { this._enemiesGroup.replaceAllByType(ENEMY_ENUM.PONTAN); } this._gameStage.time = _timerGame.repeatCount; this._setLabelTextByKey('TIME', `TIME ${_timerGame.repeatCount}`); }, callbackScope: this, }); this._scene.time.addEvent(_timerGame); this._timers.set(TIMER_GAME_ENUM.GAME, _timerGame); } }
+
+                async win() { 
+
+                    this._scene.game.sound.stopAll(); 
+
+                    
+
+                    if (currentUser.standardModeStats.highestScore < this._gameStage.stageScore) { 
+
+                        currentUser.standardModeStats.highestScore = this._gameStage.stageScore;
+
+                    }
+
+                    const nextLevel = this._gameStage.stage + 1;
+
+                    if (this._gameStage.gameMode === 'standard' && nextLevel > currentUser.standardModeStats.unlockedLevel) {
+
+                        currentUser.standardModeStats.unlockedLevel = nextLevel;
+
+                    }
+
+                    await dbUpdateUser(currentUser.email, { standardModeStats: currentUser.standardModeStats });
+
+
+
+                    this._player.disableBody(false); 
+
+                    this._player.setImmovable(true); 
+
+                    this._gameStage.stageScore += 450; 
+
+                    this._gameStage.totalScore = this._gameStage.stageScore; 
+
+                    this._gameStage.status = GAME_STATUS_ENUM.NEXT_STAGE; 
+
+                    this._setLabelTextByKey('SCORE', this._gameStage.stageScore.toString()); 
+
+                    this._scene.sound.play('level-complete'); 
+
+                    const _timerNextStage = new Phaser.Time.TimerEvent({ delay: 1000, repeat: 5, callback: () => { if (_timerNextStage.repeatCount <= 0) { if (this._gameStage.stage === GAME_STAGE_ENUM.FINAL_BONUS) { this._gameStage.status = GAME_STATUS_ENUM.COMPLETED; } this._scene.scene.start('ChangeStage', this._gameStage); } }, callbackScope: this, }); 
+
+                    this._scene.time.addEvent(_timerNextStage); 
+
+                }
+
+                lose() {
+
+                    const _timerGame = this._timers.get(TIMER_GAME_ENUM.GAME);
+
+                    if (_timerGame) _timerGame.paused = true;
+
+                    this._inputManager.rumble(600, 1.0, 1.0); // Haptics for getting hit
+
+                    if (this._gameStage.gameMode === 'deathmatch') {
+
+                        this._gameStage.lives--;
+
+                        this._setLabelTextByKey('LEFT', `LEFT ${this._gameStage.lives}`);
+
+                        this._player.kill();
+
+                        if (this._gameStage.lives > 0) {
+
+                            const _timerRespawn = new Phaser.Time.TimerEvent({
+
+                                delay: 2000,
+
+                                callback: () => {
+
+                                    this._player.respawn();
+
+                                    if (_timerGame) _timerGame.paused = false;
+
+                                    this._scene.sound.play('stage-theme', { loop: true, volume: 0.5 });
+
+                                },
+
+                                callbackScope: this,
+
+                            });
+
+                            this._scene.time.addEvent(_timerRespawn);
+
+                        } else {
+
+                            if (this._gameStage.deathScore > (currentUser.deathmatchStats?.highestScore || 0)) {
+
+                                currentUser.deathmatchStats = {
+
+                                    highestScore: this._gameStage.deathScore,
+
+                                    totalTime: this._gameStage.time,
+
+                                    enemiesKilled: this._gameStage.enemiesKilled,
+
+                                };
+
+                                dbUpdateUser(currentUser.email, { deathmatchStats: currentUser.deathmatchStats });
+
+                            }
+
+                            const _timerLose = new Phaser.Time.TimerEvent({
+
+                                delay: 4000,
+
+                                callback: () => {
+
+                                    this._gameStage.status = GAME_STATUS_ENUM.GAME_OVER;
+
+                                    this._scene.scene.start('ChangeStage', this._gameStage);
+
+                                },
+
+                                callbackScope: this,
+
+                            });
+
+                            this._scene.time.addEvent(_timerLose);
+
+                        }
+
+                    } else {
+
+                        this._gameStage.stageScore = 0;
+
+                        this._player.kill();
+
+                        const _timerLose = new Phaser.Time.TimerEvent({
+
+                            delay: 1000,
+
+                            repeat: 4,
+
+                            callback: () => {
+
+                                if (_timerLose.repeatCount <= 0) {
+
+                                    this._gameStage.lives--;
+
+                                    this._gameStage.status = this._gameStage.lives >= 0 ? GAME_STATUS_ENUM.RESTART : GAME_STATUS_ENUM.GAME_OVER;
+
+                                    this._scene.scene.start('ChangeStage', this._gameStage);
+
+                                }
+
+                            },
+
+                            callbackScope: this,
+
+                        });
+
+                        this._scene.time.addEvent(_timerLose);
+
+                    }
+
+                }
+
+                _setLabelTextByKey(keyName, value) { const _label = this._labels.getMatching('name', keyName)[0]; if (_label) _label.setText(value); }
+
+                get score() {
+
+                    // BUG FIX: The getter now correctly returns the deathScore when in deathmatch mode.
+
+                    // This prevents the score from being overwritten when a power-up is collected.
+
+                    if (this._gameStage.gameMode === 'deathmatch') {
+
+                        return this._gameStage.deathScore;
+
+                    }
+
+                    return this._gameStage.stageScore;
+
+                }
+
+                set score(v) { if (this._gameStage.gameMode === 'deathmatch') { this._gameStage.deathScore = v; this._setLabelTextByKey('SCORE', `SCORE ${this._gameStage.deathScore}`); } else { this._gameStage.stageScore = v; this._setLabelTextByKey('SCORE', this._gameStage.stageScore.toString()); } }
+
+            }
+
+            class MapManager {
+
+                constructor({ scene, world, gameStage, savedGame }) { this._scene = scene; this._world = world; this._gameStage = gameStage; this._savedGame = savedGame; this._DEFAULT_MIN_WALLS = 45; this._DEFAULT_MAX_WALLS = 60; this._scene.cameras.main.backgroundColor = Phaser.Display.Color.HexStringToColor('#1F8B00'); this._powerUpSpawnProb = 0.15; this._createMap(); }
+
+                _createMap() { const mapResult = this._createMapLayer(); if (mapResult === null) throw new Error('Map Layer is null to continue'); this._map = mapResult._map; this._mapLayer = mapResult._mapLayer; this._setUpWalls(); this._setUpCrossroads(); this._setUpSpecialObjects(); this._setUpMusic(); this._scene.cameras.main.setBounds(0, 0, this._map.widthInPixels, this._map.heightInPixels); }
+
+                _createMapLayer() { const _map = this._scene.add.tilemap('world'); const tilesMap = _map.addTilesetImage('tilemap'); if (tilesMap) { const _mapLayer = _map.createLayer('Map', tilesMap); if (_mapLayer) { _mapLayer.setCollisionByExclusion([-1]); return { _map, _mapLayer }; } } return null; }
+
+                _setUpWalls() { const roads = this._map.objects.find((object) => object.name === 'Roads')?.objects ?? []; const crossroads = this._map.objects.find((object) => object.name === 'Crossroads')?.objects ?? []; const { minWalls, maxWalls } = this._getAverageWalls(); this._wallBuilderManager = new WallBuilderManager({ roads, crossroads, minWalls, maxWalls }); this._wallsGroup = new WallGroup({ scene: this._scene, world: this._world }); this._validateSavedWalls((x, y) => { this._wallsGroup.add(new Wall({ scene: this._scene, x, y }), true); }); }
+
+                _validateSavedWalls(addWallSpriteFn) { if (this._gameStage.status === GAME_STATUS_ENUM.LOADED_GAME && this._savedGame) { this._wallBuilderManager.buildWallsFromArray(this._savedGame.map.walls, addWallSpriteFn); } else { this._wallBuilderManager.buildWalls(addWallSpriteFn); } }
+
+                _getAverageWalls() { if (this._gameStage.stage === GAME_STAGE_ENUM.FINAL_BONUS || this._gameStage.gameMode === 'deathmatch') return { minWalls: 60, maxWalls: 70 }; return { minWalls: this._DEFAULT_MIN_WALLS, maxWalls: this._DEFAULT_MAX_WALLS }; }
+
+                _setUpCrossroads() { this._crossroads = this._setUpTileGroup('Crossroads'); this._roads = this._setUpTileGroup('Roads'); }
+
+                _setUpTileGroup(key) { const group = this._scene.physics.add.group(); const gameObjects = this._map.createFromObjects(key, { classType: Phaser.Physics.Arcade.Image }); return group.addMultiple(gameObjects).setVisible(false).scaleXY(1.2, 1.2); }
+
+                _setUpSpecialObjects() { if (this._gameStage.stage !== GAME_STAGE_ENUM.FINAL_BONUS && this._gameStage.gameMode !== 'deathmatch') { this._setUpDoor(); this._setUpPowerUp(); } else if (this._gameStage.gameMode === 'deathmatch') { this.wallsGroup.getChildren().forEach(wall => { wall.setData('hasPowerUp', true); }); } }
+
+                _setUpDoor() { const position = this._getPositionByObject('door', 'hasDoor'); this._door = this._scene.physics.add.image(position.x, position.y, 'door').setScale(2.5).setVisible(this._getVisibilityByObject('door')); }
+
+                _setUpPowerUp() { const powerUpType = this._getPowerUp(); const position = this._getPositionByObject('powerUp', 'hasPowerUp'); this._powerUp = this._scene.physics.add.image(position.x, position.y, powerUpType.textureKey).setScale(2.5).setData('powerUpId', powerUpType.id).setVisible(this._getVisibilityByObject('powerUp')); }
+
+                trySpawnPowerUp(wall) {
+
+                    if (this._gameStage.gameMode !== 'deathmatch') return;
+
+                    if (Phaser.Math.RND.frac() < this._powerUpSpawnProb) {
+
+                        const powerUps = getPlayerPowerUps();
+
+                        const randomPowerUp = Phaser.Math.RND.pick(powerUps);
+
+                        const powerUpSprite = this._scene.physics.add.image(wall.x, wall.y, randomPowerUp.textureKey).setScale(2.5).setData('powerUpId', randomPowerUp.id);
+
+                        this._scene.physics.add.overlap(this._scene._player, powerUpSprite, (_, pUp) => {
+
+                            const powerUpId = pUp.getData('powerUpId');
+
+                            const points = this._scene._powerUpManager.addPowerUp(powerUpId);
+
+                            this._scene._gameRulesManager.score += points;
+
+                            pUp.destroy();
+
+                        });
+
+                    }
+
+                    this._powerUpSpawnProb = Math.min(0.6, this._powerUpSpawnProb + 0.01);
+
+                }
+
+                _getPositionByObject(objectKey, wallDataKey) { if (this._gameStage.status === GAME_STATUS_ENUM.LOADED_GAME && this._savedGame) { const object = this._savedGame.map[objectKey]; if (!object.isVisible) { const wall = this.wallsGroup.getChildren().find((item) => { const _item = item; return Math.floor(_item.body?.center.x ?? 0) === object.x && Math.floor(_item.body?.center.y ?? 0) === object.y; }); if (wall) wall.setData(wallDataKey, true); } return { x: object.x, y: object.y }; } const wall = this._pickSafeRndWall(); wall.setData(wallDataKey, true); return { x: wall.x, y: wall.y }; }
+
+                _getVisibilityByObject(objectKey) { if (this._gameStage.status === GAME_STATUS_ENUM.LOADED_GAME && this._savedGame) { return this._savedGame.map[objectKey].isVisible; } return false; }
+
+                _getPowerUp() { const stages = getStagesData(); const powerUps = getPlayerPowerUps(); let stage = stages.find((item) => item.stage === this._gameStage.stage); if (stage === undefined) stage = stages[0]; return powerUps.find((item) => item.id === stage.powerUp) ?? powerUps[0]; }
+
+                _pickSafeRndWall() { const indexTmp = Phaser.Math.RND.between(0, this.wallsGroup.getLength() - 1); const wall = this.wallsGroup.getChildren()[indexTmp]; if (wall.getData('hasPowerUp') || wall.getData('hasDoor')) { return this._pickSafeRndWall(); } return wall; }
+
+                _setUpMusic() { const stageSong = this._gameStage.stage === GAME_STAGE_ENUM.FINAL_BONUS ? 'bonus-theme' : 'stage-theme'; this._scene.sound.play(stageSong, { loop: true, volume: 0.5 }); }
+
+                getSavedState() { return { walls: this.wallsGroup.getChildren().map((wall) => { const _wall = wall; return { x: Math.round(_wall.body?.center.x ?? 0), y: Math.round(_wall.body?.center.y ?? 0) }; }), door: this.door ? { x: Math.round(this.door.body?.center.x ?? 0), y: Math.round(this.door.body?.center.y ?? 0), isVisible: this.door.visible } : null, powerUp: this.powerUp ? { x: Math.round(this.powerUp.body?.center.x ?? 0), y: Math.round(this.powerUp.body?.center.y ?? 0), isVisible: this.powerUp.visible } : null, }; }
+
+                get map() { return this._map; }
+
+                get mapLayer() { return this._mapLayer; }
+
+                get wallsGroup() { return this._wallsGroup; }
+
+                get crossroads() { return this._crossroads; }
+
+                get roads() { return this._roads; }
+
+                get wallBuilderManager() { return this._wallBuilderManager; }
+
+                get door() { return this._door; }
+
+                get powerUp() { return this._powerUp; }
+
+            }
+
+            class SaveGameManager {
+
+                constructor({ scene, gameStage, player, enemiesGroup, mapManager }) { this._scene = scene; this._gameStage = gameStage; this._player = player; this._enemiesGroup = enemiesGroup; this._mapManager = mapManager; this._controlsManager = new GameRulesControlManager(scene); }
+
+                static getLoadedGame() {
+
+                    return currentUser.savedGame;
+
+                }
+
+                async addControlsListener() { 
+
+                    if (this._gameStage.gameMode === 'deathmatch') return; 
+
+                    if (this._player.body?.enable && Phaser.Input.Keyboard.JustDown(this._controlsManager?.saveGameControl)) { 
+
+                        const tempText = this._scene.add.text(850, 22, 'SAVING GAME ...').setFontFamily('"BitBold", "Tahoma"').setFontSize(15).setColor('white').setStroke('black', 2.5).setScrollFactor(0, 0); 
+
+                        await this._saveGame(); 
+
+                        tempText.setText('GAME SAVED!');
+
+                        this._scene.time.addEvent({ delay: 1500, callback: () => tempText.destroy(true), callbackScope: this }); 
+
+                    } 
+
+                }
+
+                async _saveGame() { 
+
+                    const gameStage = { ...this._gameStage, status: GAME_STATUS_ENUM.LOADED_GAME }; 
+
+                    const savedGame = { gameStage: gameStage, player: this._player.getSavedState(), enemies: this._enemiesGroup.getSavedState(), map: this._mapManager.getSavedState(), }; 
+
+                    currentUser.savedGame = savedGame;
+
+                    await dbUpdateUser(currentUser.email, { savedGame: currentUser.savedGame });
+
+                }
+
+            }
+
+            class Boot extends Phaser.Scene {
+
+                constructor() { super('Boot'); }
+
+                create() { this.scene.start('Preloader'); }
+
+            }
+
+            class Preloader extends Phaser.Scene {
+
+                constructor() { super('Preloader'); }
+
+                preload() {
+
+                this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'LOADING GAME ...')
+
+                    .setFontFamily('"BitBold", "Tahoma"').setFontSize(15).setColor('white').setStroke('black', 2.5).setOrigin(0.5, 0.5);
+
+
+
+                // NOTE: The paths below must be correct relative to where you run the server.
+
+                this.load.tilemapTiledJSON('world', 'game/map/tilemap.json');
+
+                this.load.image('tilemap', 'game/map/hard-wall.png');
+
+                this.load.image('door', 'game/images/door.png');
+
+                this.load.image('bomb-up', 'game/images/power-up/bomb-up.png');
+
+                this.load.image('fire-up', 'game/images/power-up/fire-up.png');
+
+                this.load.image('flame-pass', 'game/images/power-up/flame-pass.png');
+
+                this.load.image('remote-control', 'game/images/power-up/remote-control.png');
+
+                this.load.image('speed-up', 'game/images/power-up/speed-up.png');
+
+                this.load.image('wall-pass', 'game/images/power-up/wall-pass.png');
+
+                this.load.image('menu-title', 'game/images/menu-title.png');
+
+
+
+                this.load.spritesheet('bomberman-move', 'game/sprites/player/walking.png', { frameWidth: 16, frameHeight: 16 });
+
+                this.load.spritesheet('bomberman-dead', 'game/sprites/player/killing.png', { frameWidth: 16, frameHeight: 21 });
+
+                this.load.spritesheet('bomb', 'game/sprites/bomb/bomb.png', { frameWidth: 17, frameHeight: 18 });
+
+                this.load.spritesheet('wall', 'game/sprites/wall/wall.png', { frameWidth: 16, frameHeight: 16 });
+
+                this.load.spritesheet('wall-explosion', 'game/sprites/wall/wall-explosion.png', { frameWidth: 18, frameHeight: 16 });
+
+                this.load.spritesheet('ballom', 'game/sprites/enemies/ballom.png', { frameWidth: 16, frameHeight: 16 });
+
+                this.load.spritesheet('onil', 'game/sprites/enemies/onil.png', { frameWidth: 16, frameHeight: 16 });
+
+                this.load.spritesheet('minvo', 'game/sprites/enemies/minvo.png', { frameWidth: 17, frameHeight: 16 });
+
+                this.load.spritesheet('dahl', 'game/sprites/enemies/dahl.png', { frameWidth: 18, frameHeight: 16 });
+
+                this.load.spritesheet('ovape', 'game/sprites/enemies/ovape.png', { frameWidth: 16, frameHeight: 16 });
+
+                this.load.spritesheet('pass', 'game/sprites/enemies/pass.png', { frameWidth: 16, frameHeight: 16 });
+
+                this.load.spritesheet('pontan', 'game/sprites/enemies/pontan.png', { frameWidth: 16, frameHeight: 16 });
+
+                this.load.spritesheet('explosion-center', 'game/sprites/bomb/explosion/explosion-center.png', { frameWidth: 18, frameHeight: 18 });
+
+                this.load.spritesheet('explosion-upper-lenght', 'game/sprites/bomb/explosion/explosion-upper-lenght.png', { frameWidth: 18, frameHeight: 16 });
+
+                this.load.spritesheet('explosion-lower-lenght', 'game/sprites/bomb/explosion/explosion-lower-lenght.png', { frameWidth: 18, frameHeight: 16 });
+
+                this.load.spritesheet('explosion-right-lenght', 'game/sprites/bomb/explosion/explosion-right-lenght.png', { frameWidth: 18, frameHeight: 16 });
+
+                this.load.spritesheet('explosion-left-lenght', 'game/sprites/bomb/explosion/explosion-left-lenght.png', { frameWidth: 18, frameHeight: 16 });
+
+                this.load.spritesheet('explosion-extension-horizontal', 'game/sprites/bomb/explosion/explosion-extension-horizontal.png', { frameWidth: 18, frameHeight: 16 });
+
+                this.load.spritesheet('explosion-extension-vertical', 'game/sprites/bomb/explosion/explosion-extension-vertical.png', { frameWidth: 18, frameHeight: 16 });
+
+                this.load.spritesheet('destroy-enemy', 'game/sprites/enemies/destroy-enemy/destroy-enemy.png', { frameWidth: 14, frameHeight: 16 });
+
+
+
+                this.load.audio('stage-theme', 'game/music/stage/stage-theme.mp3');
+
+                this.load.audio('bonus-theme', 'game/music/stage/bonus-theme.mp3');
+
+                this.load.audio('level-start', 'game/music/stage/level-start.mp3');
+
+                this.load.audio('level-complete', 'game/music/stage/level-complete.mp3');
+
+                this.load.audio('just-died', 'game/music/character/just-died.mp3');
+
+                this.load.audio('explosion', 'game/music/bomb/explosion.mp3');
+
+                this.load.audio('find-the-door', 'game/music/character/find_the_door.mp3');
+
+                this.load.audio('game-over', 'game/music/stage/game-over.mp3');
+
+                this.load.audio('menu-audio', 'game/music/stage/title-screen.mp3');
+
+                this.load.audio('walking-y', 'game/music/character/walk.mp3');
+
+                this.load.audio('walking-x', 'game/music/character/walk-2.mp3');
+
+                this.load.audio('put-bomb', 'game/music/bomb/put-bomb.wav');
+
+                this.load.audio('power-up', 'game/music/character/power-up.wav');
+
+                this.load.audio('lose', 'game/music/character/lose.wav');
+
+                this.load.audio('last-enemy', 'game/music/enemy/last-enemy.wav');
+
+            }
+
+
+
+
+
+                create() { this.scene.start('MainMenu'); }
+
+            }
+
+            class MainMenu extends Phaser.Scene {
+
+                constructor() { super('MainMenu'); }
+
+                create() {
+
+                    this.cameras.main.backgroundColor = Phaser.Display.Color.HexStringToColor('#0c0c14');
+
+                    
+
+                    // Animated Title
+
+                    const titleText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY - 150, 'BOMBERMAN', {
+
+                        fontFamily: '"Press Start 2P", "Tahoma"',
+
+                        fontSize: '64px',
+
+                        color: '#ffffff',
+
+                        align: 'center'
+
+                    }).setOrigin(0.5);
+
+
+
+                    titleText.setStroke('#ff00ff', 10);
+
+                    titleText.setShadow(5, 5, '#00ffff', 10, true, true);
+
+
+
+                    this.tweens.add({
+
+                        targets: titleText,
+
+                        scaleX: 1.05,
+
+                        scaleY: 1.05,
+
+                        ease: 'Sine.easeInOut',
+
+                        duration: 1000,
+
+                        yoyo: true,
+
+                        repeat: -1
+
+                    });
+
+                    
+
+                    const menuOptions = [
+
+                        { text: 'PLAY', action: () => { this.sound.stopAll(); this.scene.start('GameModeSelection'); } },
+
+                        { text: 'LEVEL SELECT', action: () => { this.sound.stopAll(); this.scene.start('LevelSelection'); } },
+
+                        { text: 'CONTINUE', action: () => { const state = currentUser.savedGame; if (state) { this.sound.stopAll(); this.scene.start('ChangeStage', state.gameStage); } } },
+
+                        { text: 'LEADERBOARD', action: () => openLeaderboardMenu() },
+
+                        { text: 'SOCIAL', action: () => openSocialMenu() }
+
+                    ];
+
+                    
+
+                    let yPos = this.cameras.main.centerY - 20;
+
+                    menuOptions.forEach(option => {
+
+                        const button = this.add.text(this.cameras.main.centerX, yPos, option.text, {
+
+                            fontFamily: '"Press Start 2P", "Tahoma"',
+
+                            fontSize: '24px',
+
+                            color: '#ffffff',
+
+                            stroke: '#000000',
+
+                            strokeThickness: 4
+
+                        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+
+
+                        button.on('pointerdown', option.action);
+
+                        button.on('pointerover', () => {
+
+                            button.setColor('#ffff00');
+
+                            this.tweens.add({ targets: button, scale: 1.1, duration: 100, ease: 'Power1' });
+
+                        });
+
+                        button.on('pointerout', () => {
+
+                            button.setColor('#ffffff');
+
+                            this.tweens.add({ targets: button, scale: 1, duration: 100, ease: 'Power1' });
+
+                        });
+
+                        yPos += 50;
+
+                    });
+
+
+
+                    this.sound.play('menu-audio', { loop: true, volume: 0.5 });
+
+                    this.input.keyboard.on('keydown-ESC', () => {});
+
+                }
+
+            }
+
+            class GameModeSelection extends Phaser.Scene {
+
+                constructor() { super('GameModeSelection'); }
+
+                create() { this.cameras.main.backgroundColor = Phaser.Display.Color.HexStringToColor('#000000'); this.add.text(this.cameras.main.centerX, this.cameras.main.centerY - 100, 'SELECT MODE', { fontFamily: '"Press Start 2P", "Tahoma"', fontSize: '32px', color: '#ff00ff', stroke: '#00ffff', strokeThickness: 4 }).setOrigin(0.5); const standardButton = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'STANDARD', { fontFamily: '"Press Start 2P", "Tahoma"', fontSize: '24px', color: '#ffffff', }).setOrigin(0.5).setInteractive({ useHandCursor: true }); const deathmatchButton = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 60, 'DEATHMATCH', { fontFamily: '"Press Start 2P", "Tahoma"', fontSize: '24px', color: '#ffffff', }).setOrigin(0.5).setInteractive({ useHandCursor: true }); standardButton.on('pointerdown', () => { this.scene.start('ChangeStage', { ...getInitialGameStage(), gameMode: 'standard' }); }); deathmatchButton.on('pointerdown', () => { this.scene.start('ChangeStage', { ...getInitialGameStage(), gameMode: 'deathmatch', lives: 1, time: 0, stage: GAME_STAGE_ENUM.ONE }); });[standardButton, deathmatchButton].forEach(button => { button.on('pointerover', () => button.setColor('#ffff00')); button.on('pointerout', () => button.setColor('#ffffff')); }); }
+
+            }
+
+            class LevelSelection extends Phaser.Scene {
+
+                constructor() {
+
+                    super('LevelSelection');
+
+                }
+
+
+
+                create() {
+
+                    this.cameras.main.backgroundColor = Phaser.Display.Color.HexStringToColor('#000000');
+
+                    this.add.text(this.cameras.main.centerX, this.cameras.main.centerY - 200, 'SELECT STAGE', {
+
+                        fontFamily: '"Press Start 2P", "Tahoma"',
+
+                        fontSize: '32px',
+
+                        color: '#ff00ff',
+
+                        stroke: '#00ffff',
+
+                        strokeThickness: 4
+
+                    }).setOrigin(0.5);
+
+
+
+                    const unlockedLevel = currentUser.standardModeStats.unlockedLevel || 0;
+
+                    const stages = getStagesData();
+
+                    let yPos = this.cameras.main.centerY - 100;
+
+
+
+                    stages.forEach((stageData, index) => {
+
+                        if (stageData.stage === GAME_STAGE_ENUM.FINAL_BONUS) return; // Don't show bonus stage in selector
+
+
+
+                        const stageNumber = index + 1;
+
+                        const stageText = `STAGE ${stageNumber}`;
+
+                        const isUnlocked = index <= unlockedLevel;
+
+
+
+                        const button = this.add.text(this.cameras.main.centerX, yPos, stageText, {
+
+                            fontFamily: '"Press Start 2P", "Tahoma"',
+
+                            fontSize: '24px',
+
+                            color: isUnlocked ? '#ffffff' : '#555555',
+
+                        }).setOrigin(0.5);
+
+
+
+                        if (isUnlocked) {
+
+                            button.setInteractive({ useHandCursor: true });
+
+                            button.on('pointerdown', () => {
+
+                                this.scene.start('ChangeStage', { ...getInitialGameStage(), gameMode: 'standard', stage: index });
+
+                            });
+
+                            button.on('pointerover', () => button.setColor('#ffff00'));
+
+                            button.on('pointerout', () => button.setColor('#ffffff'));
+
+                        } else {
+
+                             this.add.text(button.x + button.width / 2 + 60, yPos, 'LOCKED', {
+
+                                fontFamily: '"Press Start 2P", "Tahoma"',
+
+                                fontSize: '16px',
+
+                                color: '#ff5555',
+
+                            }).setOrigin(0.5);
+
+                        }
+
+
+
+                        yPos += 50;
+
+                    });
+
+
+
+                    const backButton = this.add.text(this.cameras.main.centerX, yPos + 50, 'BACK', {
+
+                        fontFamily: '"Press Start 2P", "Tahoma"',
+
+                        fontSize: '24px',
+
+                        color: '#ffffff',
+
+                    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+
+
+                    backButton.on('pointerdown', () => {
+
+                        this.scene.start('MainMenu');
+
+                    });
+
+                    backButton.on('pointerover', () => backButton.setColor('#ffff00'));
+
+                    backButton.on('pointerout', () => backButton.setColor('#ffffff'));
+
+                }
+
+            }
+
+            class ChangeStage extends Phaser.Scene {
+
+                constructor() { super('ChangeStage'); }
+
+                init(gameStage) { this._gameStage = gameStage; }
+
+                async create() { 
+
+                    this.sound.stopAll(); 
+
+                    this.cameras.main.backgroundColor = Phaser.Display.Color.HexStringToColor('#000000'); 
+
+                    if (this._gameStage) { 
+
+                        switch (this._gameStage?.status) { 
+
+                            case GAME_STATUS_ENUM.START: 
+
+                            case GAME_STATUS_ENUM.RESTART: 
+
+                                if (this._gameStage.gameMode !== 'deathmatch') { 
+
+                                    this._gameStage.time = 200; 
+
+                                    this._gameStage.stageScore = 0; 
+
+                                } 
+
+                                this._prepareUI({ text: this._getStageText(), delay: 4, soundKey: 'level-start', sceneKey: 'Game' }); 
+
+                                break; 
+
+                            case GAME_STATUS_ENUM.LOADED_GAME: 
+
+                                this._prepareUI({ text: this._getStageText(), delay: 4, soundKey: 'level-start', sceneKey: 'Game' }); 
+
+                                break; 
+
+                            case GAME_STATUS_ENUM.GAME_OVER: 
+
+                                if (currentUser && currentUser.savedGame) {
+
+                                    currentUser.savedGame = null;
+
+                                    await dbUpdateUser(currentUser.email, { savedGame: null });
+
+                                }
+
+                                if (this._gameStage.gameMode === 'deathmatch') { 
+
+                                    this._displayDeathScore(); 
+
+                                } else { 
+
+                                    this._prepareUI({ text: 'GAME OVER', delay: 7, soundKey: 'game-over', sceneKey: 'MainMenu' }); 
+
+                                } 
+
+                                break; 
+
+                            case GAME_STATUS_ENUM.NEXT_STAGE: 
+
+                                this._gameStage.stage++; 
+
+                                this._prepareUI({ text: this._getStageText(), delay: 4, soundKey: 'level-start', sceneKey: 'Game' }); 
+
+                                break; 
+
+                            case GAME_STATUS_ENUM.COMPLETED: 
+
+                                if (currentUser && currentUser.savedGame) {
+
+                                    currentUser.savedGame = null;
+
+                                    await dbUpdateUser(currentUser.email, { savedGame: null });
+
+                                }
+
+                                this._prepareUI({ text: 'Amazing! \n Thanks for playing!', delay: 10, soundKey: 'level-complete', sceneKey: 'MainMenu' }); 
+
+                                break; 
+
+                        } 
+
+                    } 
+
+                }
+
+                _displayDeathScore() { const score = this._gameStage.deathScore; let rank = 'Iron'; if (score >= 10000) rank = 'Platinum'; else if (score >= 5000) rank = 'Gold'; else if (score >= 2500) rank = 'Silver'; else if (score >= 1000) rank = 'Bronze'; const scoreText = `DEATH SCORE: ${score}\nRANK: ${rank}`; this._prepareUI({ text: scoreText, delay: 10, soundKey: 'game-over', sceneKey: 'MainMenu' }); }
+
+                _prepareUI({ text, delay, soundKey, sceneKey }) { this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, text).setFontFamily('"Press Start 2P", "Tahoma"').setFontSize(15).setColor('white').setStroke('black', 2.5).setOrigin(0.5).setAlign('center'); this.sound.play(soundKey); const _sceneTimer = this.time.addEvent({ delay: 1000, repeat: delay, callback: () => { if (_sceneTimer.repeatCount <= 0) { this.scene.start(sceneKey, this._gameStage); } }, callbackScope: this, }); }
+
+                _getStageText() { if (this._gameStage.gameMode === 'deathmatch') return 'DEATHMATCH'; if (this._gameStage?.stage === GAME_STAGE_ENUM.FINAL_BONUS) return 'BONUS STAGE'; return `STAGE ${this._gameStage?.stage + 1}`; }
+
+            }
+
+            class BombermanGame extends Phaser.Scene {
+
+                constructor() { super('Game'); this._savedGame = null; }
+
+                init(gameStage) { 
+
+                    this._gameStage = gameStage; 
+
+                    this._savedGame = gameStage.status === GAME_STATUS_ENUM.LOADED_GAME ? currentUser.savedGame : null;
+
+                }
+
+                create() {
+
+                    this.scene.launch('PauseMenu');
+
+                    this.scene.sleep('PauseMenu');
+
+                    // Create the unified input manager and attach it to the scene
+
+                    this._inputManager = new InputManager(this);
+
+                    this._mapManager = new MapManager({ scene: this, world: this.physics.world, gameStage: this._gameStage, savedGame: this._savedGame });
+
+                    this._bombGroup = new BombGroup({ scene: this, world: this.physics.world, wallBuilderManager: this._mapManager.wallBuilderManager, inputManager: this._inputManager });
+
+                    this._player = new Player({ scene: this, x: 60, y: 120, bombGroup: this._bombGroup, gameStage: this._gameStage, savedGame: this._savedGame, inputManager: this._inputManager });
+
+                    this._enemiesGroup = new EnemyGroup({ scene: this, world: this.physics.world, player: this._player, wallBuilderManager: this._mapManager.wallBuilderManager, gameStage: this._gameStage, savedGame: this._savedGame });
+
+                    this._powerUpManager = new PowerUpManager({ scene: this, player: this._player, bombGroup: this._bombGroup, gameStage: this._gameStage });
+
+                    this._gameRulesManager = new GameRulesManager({ scene: this, gameStage: this._gameStage, player: this._player, enemiesGroup: this._enemiesGroup, inputManager: this._inputManager });
+
+                    this._saveGameManager = new SaveGameManager({ scene: this, gameStage: this._gameStage, player: this._player, enemiesGroup: this._enemiesGroup, mapManager: this._mapManager });
+
+                    
+
+                    this.physics.add.collider(this._player, this._mapManager.mapLayer);
+
+                    this.physics.add.collider(this._player, this._bombGroup, undefined, (player, _) => !player.hasBombPassPowerUp, this);
+
+                    this.physics.add.collider(this._player, this._mapManager.wallsGroup, undefined, (player, _) => !player.hasWallPassPowerUp, this);
+
+                    this.physics.add.overlap(this._player, this._mapManager.crossroads, (_, tile) => { if (tile.body) this._player.lastTilePassedPosition = { x: Math.floor(tile.body.center.x), y: Math.floor(tile.body.center.y) }; }, (_, tile) => this._player.validateTileOverlap(tile), this);
+
+                    this.physics.add.overlap(this._player, this._mapManager.roads, (_, tile) => { if (tile.body) this._player.lastTilePassedPosition = { x: Math.floor(tile.body.center.x), y: Math.floor(tile.body.center.y) }; }, (_, tile) => this._player.validateTileOverlap(tile), this);
+
+                    this.physics.add.overlap(this._player, this._enemiesGroup, () => { if (!this._player.isInvincible) this._gameRulesManager.lose(); }, undefined, this);
+
+                    this.physics.add.overlap(this._player, this._bombGroup.explosionGroup, () => { if (!this._player.isInvincible) this._gameRulesManager.lose(); }, (player, _) => !player.hasFlamePassPowerUp && !player.isInvincible, this);
+
+                    this.physics.add.collider(this._enemiesGroup, this._bombGroup, (enemy, _) => { enemy.retraceMotion(); }, undefined, this);
+
+                    this.physics.add.collider(this._enemiesGroup, this._mapManager.mapLayer, (enemy, _) => { enemy.retraceMotion(); }, undefined, this);
+
+                    this.physics.add.collider(this._enemiesGroup, this._mapManager.wallsGroup, (enemy, _) => { enemy.retraceMotion(); }, (enemy, _) => !enemy.enemyData.hasWallPassPowerUp, this);
+
+                    this.physics.add.overlap(this._enemiesGroup, this._mapManager.crossroads, (enemy, crossroad) => { const crossroadPos = { x: crossroad.body?.center.x ?? 0, y: crossroad.body?.center.y ?? 0 }; enemy.lastCrossroadTouched = crossroadPos; enemy.dispatchMotion(); }, (enemy, crossroad) => { const tilePos = { x: crossroad.body?.center.x ?? 0, y: crossroad.body?.center.y ?? 0 }; return enemy.validateCrossroadOverlap(tilePos); }, this);
+
+                    this.physics.add.overlap(this._bombGroup.explosionGroup, this._bombGroup, (_, bomb) => { this._bombGroup.exploitByBomb(bomb); }, undefined, this);
+
+                    if (this._gameStage.gameMode !== 'deathmatch') { this.physics.add.overlap(this._player, this._mapManager.powerUp, (_, powerUp) => { const powerUpId = powerUp.getData('powerUpId'); const extraPoints = this._powerUpManager.addPowerUp(powerUpId); this._gameRulesManager.score += extraPoints; powerUp.destroy(); }, (player, powerUp) => { if (player.body && powerUp.body) { const deltaX = Math.abs(Math.round(player.body.center.x) - Math.floor(powerUp.body.center.x)); const deltaY = Math.abs(Math.round(player.body.center.y) - Math.floor(powerUp.body.center.y)); return deltaX <= 5 && deltaY <= 5; } return false; }, this); 
+
+                    
+
+                    this.physics.add.overlap(
+
+                        this._player, 
+
+                        this._mapManager.door, 
+
+                        () => { 
+
+                            if (this._enemiesGroup.getLength() === 0) {
+
+                                this._gameRulesManager.win(); 
+
+                            }
+
+                        }, 
+
+                        (player, door) => {
+
+                            if (player.body && door.body) {
+
+                                const deltaX = Math.abs(player.body.center.x - door.body.center.x);
+
+                                const deltaY = Math.abs(player.body.center.y - door.body.center.y);
+
+                                return deltaX < 10 && deltaY < 10;
+
+                            }
+
+                            return false;
+
+                        }, 
+
+                        this
+
+                    );
+
+
+
+                    this.physics.add.overlap(this._bombGroup.explosionGroup, this._mapManager.door, () => { const door = this._mapManager.door; door.disableBody(true, true); setTimeout(() => { if (door.active) door.enableBody(true, door.x, door.y, true, true); }, 3000); if (door.body) this._enemiesGroup.addRandomByPosition(door.body.center.x, door.body.center.y); }, () => this._mapManager.door.body?.enable && this._mapManager.door.visible, this); } this.physics.add.overlap(this._bombGroup.explosionGroup, this._enemiesGroup, (_, enemy) => { const enemyType = enemy.enemyData.type; if (!this._gameStage.enemiesKilled[enemyType]) { this._gameStage.enemiesKilled[enemyType] = 0; } this._gameStage.enemiesKilled[enemyType]++; this._gameRulesManager.score += enemy.enemyData.rewardPoints; enemy.kill(); if (this._gameStage.gameMode === 'deathmatch') { this._enemiesGroup.spawnDeathmatchEnemy(); } if (this._enemiesGroup.getTotalUsed() === 0 && this._gameStage.stage === GAME_STAGE_ENUM.FINAL_BONUS) this._gameRulesManager.win(); }, (_, enemy) => !enemy.hasTemporalShield, this);
+
+                    this.physics.add.collider(this._bombGroup.explosionGroup, this._mapManager.wallsGroup, (_, wall) => { if (this._gameStage.gameMode === 'deathmatch') { this._mapManager.trySpawnPowerUp(wall); } wall.kill(); if (wall.getData('hasDoor')) { const door = this._mapManager.door; door.disableBody(true, true); setTimeout(() => { if (door.active) door.enableBody(true, door.x, door.y, true, true); }, 3000); door.setVisible(true); } if (wall.getData('hasPowerUp') && this._gameStage.gameMode !== 'deathmatch') { this._mapManager.powerUp.setVisible(true); } if (wall.body) { this._mapManager.wallBuilderManager.addPositionFree(Math.floor(wall.body.center.x), Math.floor(wall.body.center.y)); } }, undefined, this);
+
+                }
+
+                update() {
+
+                    this._player.addControlsListener();
+
+                    (async () => {
+
+                        await this._saveGameManager.addControlsListener();
+
+                    })();
+
+                    if (this._inputManager.justPressedPause()) {
+
+                        this.scene.pause();
+
+                        this.scene.wake('PauseMenu');
+
+                    }
+
+                }
+
+                applyCheat(code) {
+
+                    switch (code) {
+
+                        case 'kill':
+
+                            this._enemiesGroup.getChildren().forEach(enemy => enemy.kill());
+
+                            if (this._enemiesGroup.getLength() === 0 && this._mapManager.door) {
+
+                                this.sound.stopByKey('stage-theme');
+
+                                this.sound.play('find-the-door', { loop: true });
+
+                            }
+
+                            return true;
+
+                        case 'door':
+
+                            this._enemiesGroup.getChildren().forEach(enemy => enemy.kill());
+
+                            
+
+                            if (this._mapManager.door) {
+
+                                const walls = this._mapManager.wallsGroup.getChildren();
+
+                                const wallWithDoor = walls.find(wall => wall.getData('hasDoor'));
+
+                                if (wallWithDoor) {
+
+                                    wallWithDoor.kill();
+
+                                } else {
+
+                                    this._mapManager.door.setVisible(true);
+
+                                }
+
+                                this.sound.stopByKey('stage-theme');
+
+                                this.sound.play('find-the-door', { loop: true });
+
+                            }
+
+                            return true;
+
+                        default:
+
+                            return false;
+
+                    }
+
+                }
+
+            }
+
+            class PauseMenu extends Phaser.Scene {
+
+                constructor() { super('PauseMenu'); }
+
+                 create() {
+
+                    this.inputManager = new InputManager(this); // Create its own input manager
+
+                    const overlay = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x000000, 0.7).setOrigin(0);
+
+                    this.add.text(this.cameras.main.centerX, this.cameras.main.centerY - 100, 'PAUSED', { fontFamily: '"Press Start 2P", "Tahoma"', fontSize: '48px', color: '#ffffff', stroke: '#ff00ff', strokeThickness: 6 }).setOrigin(0.5);
+
+                    
+
+                    const resumeButton = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'RESUME', { fontFamily: '"Press Start 2P", "Tahoma"', fontSize: '24px', color: '#ffffff', }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+                    const mainMenuButton = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 60, 'MAIN MENU', { fontFamily: '"Press Start 2P", "Tahoma"', fontSize: '24px', color: '#ffffff', }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+                    const cheatButton = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 120, 'CHEATS', { fontFamily: '"Press Start 2P", "Tahoma"', fontSize: '24px', color: '#ffffff', }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+                    
+
+                    resumeButton.on('pointerdown', () => {
+
+                        this.scene.sleep();
+
+                        this.scene.resume('Game');
+
+                    });
+
+                    mainMenuButton.on('pointerdown', () => {
+
+                        this.scene.stop('Game');
+
+                        this.scene.start('MainMenu');
+
+                    });
+
+                    cheatButton.on('pointerdown', () => {
+
+                        window.openCheatMenu();
+
+                    });
+
+
+
+                    [resumeButton, mainMenuButton, cheatButton].forEach(button => {
+
+                        button.on('pointerover', () => button.setColor('#ffff00'));
+
+                        button.on('pointerout', () => button.setColor('#ffffff'));
+
+                    });
+
+                }
+
+
+
+                update() {
+
+                    // B button or Pause button resumes the game from the pause menu
+
+                    if (this.inputManager.justPressedBack() || this.inputManager.justPressedPause()) {
+
+                        this.scene.sleep();
+
+                        this.scene.resume('Game');
+
+                    }
+
+                }
+
+            }
+
+            const config = {
+
+                type: Phaser.AUTO,
+
+                width: 1024,
+
+                height: 580,
+
+                parent: 'bomberman-container',
+
+                backgroundColor: '#000000',
+
+                scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+
+                antialias: false,
+
+                pixelArt: true,
+
+                // Enable gamepad input for Phaser
+
+                input: {
+
+                    gamepad: true
+
+                },
+
+                physics: {
+
+                    default: 'arcade',
+
+                },
+
+                scene: [Boot, Preloader, MainMenu, GameModeSelection, LevelSelection, ChangeStage, BombermanGame, PauseMenu]
+
+            };
+
+            
+
+            bombermanGameInstance = new Phaser.Game(config);
+
+        }
+
+    </script>
+
+</body>
+
+</html>
+
+
+
+
+
