@@ -54,7 +54,7 @@ app.use(express.json());
 
 // Your MongoDB Atlas connection string
 
-const uri = "mongodb+srv://Aaron-Admin:Aaren2002@bomberman.plbcjta.mongodb.net/?retryWrites=true&w=majority&appName=Bomberman";
+const uri = "";
 
 
 
@@ -150,9 +150,9 @@ const transporter = nodemailer.createTransport({
 
     auth: {
 
-        user: 'aarenstanly20@gmail.com', // Your email address
+        user: 'example@gmail.com', // Your email address
 
-        pass: 'aeqf bgmb alcx cdvp'    // Your email password or app-specific password
+        pass: 'xxx'    // Your email password or app-specific password
 
     }
 
